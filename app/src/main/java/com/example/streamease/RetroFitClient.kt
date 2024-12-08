@@ -1,6 +1,5 @@
 package com.example.streamease
 
-import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -13,9 +12,7 @@ class RetrofitClient {
 
 
     init {
-        val gson = GsonBuilder()
-            .setLenient()
-            .create()
+
         interceptor.level = HttpLoggingInterceptor.Level.BODY
         builder.addInterceptor(interceptor)
 

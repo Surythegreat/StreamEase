@@ -17,14 +17,14 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        fetchData();
+        fetchData()
     }
 
     private fun fetchData() {
         RetrofitClient.instance?.api?.getPopular(APIKEY)?.enqueue(object : Callback<PageData> {
             override fun onResponse(p0: Call<PageData>, p1: Response<PageData>) {
                 val tV:TextView = findViewById(R.id.tV)
-                tV.text = p1.body()?.url;
+                tV.text = p1.body()?.url
             }
 
             override fun onFailure(p0: Call<PageData>, p1: Throwable) {
@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
                 tV.text = buildString {
                     append("Error")
                     append(p1.message)
-                };
+                }
             }
 
         })
