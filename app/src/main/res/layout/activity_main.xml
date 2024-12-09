@@ -39,11 +39,39 @@
             android:textStyle="bold" />
 
     </LinearLayout>
-    <androidx.recyclerview.widget.RecyclerView
-                android:layout_width="match_parent"
-        android:id="@+id/recycleview"
-                android:layout_margin="10dp"
-                android:layout_height="match_parent"/>
 
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/nestedscrollview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context=".MainActivity">
+
+            <!--linear layout for displaying
+                our recycler view-->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <!--recycler view for displaying our list of data
+                    and we are making nested scroll for our
+                    recycler view as false-->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycleview"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/eachvideothumb" />
+
+                <!--we are adding progress bar
+                    for the purpose of loading-->
+                <ProgressBar
+                    android:id="@+id/idPBLoading"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
     </LinearLayout>
 </layout>
