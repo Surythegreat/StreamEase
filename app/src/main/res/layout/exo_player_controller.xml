@@ -23,6 +23,7 @@
 
         <ImageButton
             android:id="@id/exo_play_pause"
+
             style="@style/ExoMediaButton.Play"
             android:visibility="visible" />
         <ImageButton android:id="@id/exo_ffwd"
