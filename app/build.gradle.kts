@@ -55,5 +55,10 @@ dependencies {
 
     implementation(libs.logging.interceptor)
     implementation (libs.glide)
+//    implementation ("com.google.android.exoplayer:exoplayer-core:2.19.1")
+//    implementation ("com.google.android.exoplayer:exoplayer-ui:2.19.1")
+    implementation (libs.androidx.media3.exoplayer)
+    implementation (libs.androidx.media3.exoplayer.dash)
+    implementation (libs.androidx.media3.ui)
 
 }

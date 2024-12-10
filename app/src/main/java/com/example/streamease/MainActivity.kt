@@ -1,5 +1,6 @@
 package com.example.streamease
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.ProgressBar
@@ -78,6 +79,14 @@ class MainActivity : AppCompatActivity() {
                 val adapter = myAdapter(this@MainActivity, videolist)
                 recycleV.adapter = adapter
                 recycleV.layoutManager = linearLayoutManager
+                adapter.setOnItemClickListner(object :myAdapter.onItemClickListner{
+                    override fun onItemClick(position: Int) {
+                        val intent = Intent(this@MainActivity,VideoPlayscreen::class.java)
+                        intent.putExtra("url",videolist[position].url)
+                        intent.putExtra("hdvideourl",videolist[position].video_files[0].link)
+                        startActivity(intent)
+                    }
+                })
 
                 binding.PageNo.text = buildString {
                     append("Page No.:")

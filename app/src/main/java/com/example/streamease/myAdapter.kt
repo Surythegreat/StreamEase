@@ -13,11 +13,23 @@ import com.google.android.material.imageview.ShapeableImageView
 
 class myAdapter(val context:Activity, val arrayList: List<Video>?):
     Adapter<myAdapter.MyviewHolder>() {
-    class MyviewHolder(val itemview:View):ViewHolder(itemview) {
+    private lateinit var myListner: onItemClickListner
+    interface onItemClickListner{
+        fun onItemClick(position: Int)
+    }
+    fun setOnItemClickListner(Listner: onItemClickListner){
+        myListner = Listner
+    }
+
+
+    class MyviewHolder(val itemview:View,Listner: onItemClickListner):ViewHolder(itemview) {
         var image:ShapeableImageView
         var titletex:TextView
         var Durationtex:TextView
         init {
+            itemView.setOnClickListener {
+                Listner.onItemClick(adapterPosition)
+            }
             image = itemview.findViewById(R.id.thumbnailimage)
             titletex = itemview.findViewById(R.id.title)
             Durationtex = itemview.findViewById(R.id.DESC)
@@ -26,7 +38,7 @@ class myAdapter(val context:Activity, val arrayList: List<Video>?):
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): myAdapter.MyviewHolder {
         val card = LayoutInflater.from(context).inflate(R.layout.eachvideothumb,parent,false)
-        return MyviewHolder(card)
+        return MyviewHolder(card,myListner)
     }
 
     override fun onBindViewHolder(holder: myAdapter.MyviewHolder, position: Int) {
