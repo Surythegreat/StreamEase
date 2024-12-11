@@ -60,6 +60,13 @@
             android:includeFontPadding="false"
             android:textColor="#FFBEBEBE"/>
 
+
+        <Button
+            android:id="@+id/quality_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Quality: 720p" />
+
         <ImageButton
             android:id="@+id/exo_settings"
             style="@style/ExoStyledControls.Button.Bottom.Settings"
