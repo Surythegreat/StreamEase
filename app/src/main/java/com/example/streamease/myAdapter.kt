@@ -22,13 +22,13 @@ class myAdapter(val context:Activity, val arrayList: List<Video>?):
     }
 
 
-    class MyviewHolder(val itemview:View,Listner: onItemClickListner):ViewHolder(itemview) {
+    class MyviewHolder(private val itemview:View, Listner: onItemClickListner):ViewHolder(itemview) {
         var image:ShapeableImageView
         var titletex:TextView
         var Durationtex:TextView
         init {
             itemView.setOnClickListener {
-                Listner.onItemClick(adapterPosition)
+                Listner.onItemClick(absoluteAdapterPosition)
             }
             image = itemview.findViewById(R.id.thumbnailimage)
             titletex = itemview.findViewById(R.id.title)
@@ -51,6 +51,6 @@ class myAdapter(val context:Activity, val arrayList: List<Video>?):
     }
 
     override fun getItemCount(): Int {
-        return arrayList?.size?:0;
+        return arrayList?.size?:0
     }
 }

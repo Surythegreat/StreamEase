@@ -5,38 +5,30 @@ import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
-import android.view.View.OnClickListener
-import android.view.View.inflate
 import android.view.ViewGroup
-import android.view.Window
-import android.view.WindowManager
 import android.widget.Button
-import android.widget.ImageButton
 import android.widget.ImageView
-import android.widget.RelativeLayout
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
-import androidx.annotation.OptIn
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.location.LocationRequestCompat.Quality
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.media3.common.MediaItem
-import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.trackselection.AdaptiveTrackSelection
-import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.PlayerView
 
 
 class VideoPlayscreen : AppCompatActivity() {
     private var player: ExoPlayer? = null
     private lateinit var playerView: PlayerView
-    private lateinit var QualityBut: Button
-    private lateinit var  dialog :AlertDialog
+    private lateinit var qualityBut: Button
+    private lateinit var dialog: AlertDialog
+    private lateinit var mediaItemArrayList: ArrayList<MediaItem>
+    private var videoQuality:java.util.ArrayList<String>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,16 +36,16 @@ class VideoPlayscreen : AppCompatActivity() {
         enableEdgeToEdge()
 
 
-        var i: String? = intent.getStringExtra("url")
+        val i: String? = intent.getStringExtra("url")
         val textView: TextView = findViewById(R.id.titleofplayer)
-        textView.text = i.toString().substring(29);
+        textView.text = i.toString().substring(29)
         playerView = findViewById(R.id.video_view)
         val windowInsetsController =
             WindowCompat.getInsetsController(window, window.decorView)
         windowInsetsController.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        QualityBut = playerView.findViewById(R.id.quality_button)
-        QualityBut.setOnClickListener { onQualityButtonPressed() }
+        qualityBut = playerView.findViewById(R.id.quality_button)
+        qualityBut.setOnClickListener { onQualityButtonPressed() }
 
         // Initialize ExoPlayer
         player = ExoPlayer.Builder(this).build()
@@ -75,24 +67,40 @@ class VideoPlayscreen : AppCompatActivity() {
 //
 //        })
         val p = View.inflate(this, R.layout.qualitytrack, null)
-        val builder:AlertDialog.Builder =AlertDialog.Builder(this)
+        val builder: AlertDialog.Builder = AlertDialog.Builder(this)
         builder.setView(p)
-        dialog  = builder.create()
+        dialog = builder.create()
 
+        mediaItemArrayList = arrayListOf()
+        val track:LinearLayout =p.findViewById(R.id.quality_track)
         // Build the MediaItem
         val videoUrl = intent.getStringArrayListExtra("Videolinks")
-        val uri = Uri.parse(videoUrl?.get(0) ?: " ")
-        val mediaItem: MediaItem = MediaItem.fromUri(uri)
+        videoQuality= intent.getStringArrayListExtra("videoquality")
+        if (videoUrl != null) {
+            for (index in videoUrl.indices){
+                val mybut = layoutInflater.inflate(R.layout.qualitybutton_layout,track,false) as Button
+                track.addView(mybut)
+                val uri = Uri.parse(videoUrl[index])
+                val mediaItem: MediaItem = MediaItem.fromUri(uri)
+                mediaItemArrayList.add(mediaItem);
+                mybut.text = videoQuality?.get(index) ?: " "
+                mybut.setOnClickListener{onQualityChangedButtons(index)}
+            }
+        }
 
 
+        qualityBut.text = buildString {
+            append("Quality:")
+            append(videoQuality?.get(0) ?: " ")
+        }
         // Prepare the player with the media item
-        player!!.setMediaItem(mediaItem)
+        player!!.setMediaItem(mediaItemArrayList[0])
         player!!.prepare()
-        player?.playWhenReady = true; // Start playing when ready
+        player?.playWhenReady = true // Start playing when ready
 
 
         var fullscreen = false
-        var fullscreenButton = playerView.findViewById<ImageView>(R.id.exo_fullscreen_icon)
+        val fullscreenButton = playerView.findViewById<ImageView>(R.id.exo_fullscreen_icon)
         fullscreenButton.setOnClickListener {
             if (fullscreen) {
                 fullscreenButton.setImageDrawable(
@@ -131,7 +139,21 @@ class VideoPlayscreen : AppCompatActivity() {
             }
         }
     }
+    private fun onQualityChangedButtons(s: Int) {
+        val pos= player?.currentPosition;
+        player?.setMediaItem(mediaItemArrayList[s])
 
+        player!!.prepare()
+        if (pos != null) {
+            player!!.seekTo(pos)
+        }
+        player?.playWhenReady = true
+        dialog.hide()
+        qualityBut.text = buildString {
+            append("Quality:")
+            append(videoQuality?.get(s) ?: " ")
+        }
+    }
     private fun onQualityButtonPressed() {
 
         player?.pause()

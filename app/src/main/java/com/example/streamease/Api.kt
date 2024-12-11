@@ -10,10 +10,10 @@ interface Api  {
     @GET("popular")
     fun getPopular(
         @Header("Authorization")
-        Credential:String,
+        credential:String,
         @Query("page")
         page:Int,
         @Query("per_page")
-        per_page:Int
+        perPage:Int
     ): Call<PageData>
 }

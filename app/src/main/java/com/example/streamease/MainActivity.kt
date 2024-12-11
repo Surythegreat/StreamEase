@@ -85,10 +85,13 @@ class MainActivity : AppCompatActivity() {
 //                        intent.putExtra("hdvideourl",videolist[position].video_files[0].link)
 //                        intent.putExtra("sdvideourl",videolist[position].video_files[1].link)
                         val videolinklist: ArrayList<String> = arrayListOf()
+                        val videoqualitylist :ArrayList<String> = arrayListOf()
                         for ( vid in videolist[position].video_files){
                             videolinklist.add(vid.link)
+                            videoqualitylist.add(vid.quality+" :"+vid.width+"X"+vid.height )
                         }
                         intent.putExtra("Videolinks",videolinklist)
+                        intent.putExtra("videoquality",videoqualitylist)
                         startActivity(intent)
                     }
                 })
