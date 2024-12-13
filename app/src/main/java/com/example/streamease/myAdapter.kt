@@ -11,6 +11,7 @@ import com.bumptech.glide.Glide
 import com.example.streamease.Models.Video
 import com.google.android.material.imageview.ShapeableImageView
 
+
 class myAdapter(val context:Activity, val arrayList: List<Video>?):
     Adapter<myAdapter.MyviewHolder>() {
     private lateinit var myListner: onItemClickListner
@@ -42,12 +43,20 @@ class myAdapter(val context:Activity, val arrayList: List<Video>?):
     }
 
     override fun onBindViewHolder(holder: myAdapter.MyviewHolder, position: Int) {
-        holder.titletex.text = arrayList?.get(position)?.url?.substring(29)?.replace("-"," ") ?: "0"
-        holder.Durationtex.text = buildString {
-            append("Duration:")
-            arrayList?.get(position)?.let { append(it.duration) }
+        val s = arrayList?.get(position)?.url?.substring(29)?.replace("-"," ")
+        if (s != null) {
+            holder.titletex.text = buildString {
+                append(s.uppercase()[0])
+                append(s.substring(1))
+            }
         }
-        Glide.with(context).load(arrayList?.get(position)?.image).into(holder.image)
+        holder.Durationtex.text = buildString {
+            arrayList?.get(position)?.let { append(it.duration/60)
+                                            append(":")
+                                            append(it.duration%60)}
+        }
+        Glide.with(holder.image).load(arrayList?.get(position)?.image).into(holder.image)
+
     }
 
     override fun getItemCount(): Int {

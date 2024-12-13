@@ -35,7 +35,7 @@ android {
         jvmTarget = "1.8"
     }
     dataBinding{
-        enable =true;
+        enable =true
     }
 }
 
@@ -61,4 +61,5 @@ dependencies {
     implementation (libs.androidx.media3.exoplayer.dash)
     implementation (libs.androidx.media3.ui)
 
+    implementation(libs.blurry)
 }

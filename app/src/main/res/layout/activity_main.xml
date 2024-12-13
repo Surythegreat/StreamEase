@@ -3,75 +3,119 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <LinearLayout
-    android:id="@+id/main"
-    android:layout_width="match_parent"
-    android:orientation="vertical"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    <data>
+        <!-- Declare your variables and data binding here if needed -->
+    </data>
 
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/light_black"
+        tools:context=".MainActivity">
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:padding="10dp"
-            android:id="@+id/totalRES"
-            android:text="TOTAL RESULTS:"
-            android:textAlignment="textStart"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:id="@+id/PageNo"
-            android:padding="10dp"
-            android:text="Page No.:"
-            android:textAlignment="textEnd"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-    </LinearLayout>
-
-        <androidx.core.widget.NestedScrollView
-            android:id="@+id/nestedscrollview"
+        <LinearLayout
+            android:id="@+id/main"
             android:layout_width="match_parent"
+            android:orientation="vertical"
             android:layout_height="match_parent"
-            tools:context=".MainActivity">
+            android:background="@color/light_black">
 
-            <!--linear layout for displaying
-                our recycler view-->
-            <LinearLayout
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:layout_width="223dp"
+                    android:layout_height="54dp"
+                    android:padding="3dp"
+                    android:layout_margin="20dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/logo_streamease2"/>
+
+                <ImageButton
+                    android:id="@+id/search_button"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_gravity="center|end"
+                    android:background="@color/light_black"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/baseline_search_24" />
+            </FrameLayout>
+
+            <androidx.core.widget.NestedScrollView
+                android:id="@+id/nestedscrollview"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical">
+                tools:context=".MainActivity">
 
-                <!--recycler view for displaying our list of data
-                    and we are making nested scroll for our
-                    recycler view as false-->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recycleview"
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:nestedScrollingEnabled="false"
-                    tools:listitem="@layout/eachvideothumb" />
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
 
-                <!--we are adding progress bar
-                    for the purpose of loading-->
-                <ProgressBar
-                    android:id="@+id/idPBLoading"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recycleview"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:nestedScrollingEnabled="false"
+                        tools:listitem="@layout/eachvideothumb" />
 
-        </androidx.core.widget.NestedScrollView>
-    </LinearLayout>
+                    <ProgressBar
+                        android:id="@+id/idPBLoading"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
+        </LinearLayout>
+
+        <!-- Blurry overlay -->
+        <ImageView
+            android:id="@+id/blurryView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:scaleType="centerCrop" />
+
+        <!-- Touch interceptor overlay -->
+        <View
+            android:id="@+id/touchInterceptor"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#00000000"
+            android:visibility="gone" />
+
+        <!-- Search view should be above the blur view -->
+        <LinearLayout
+            android:id="@+id/searchContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/light_black"
+            android:padding="8dp"
+            android:layout_marginTop="50dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <SearchView
+                android:id="@+id/videoSearch"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@color/grey"
+                android:queryHint="Search videos" />
+
+            <TextView
+                android:id="@+id/cancelButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:background="@color/light_black"
+                android:backgroundTint="@color/light_black"
+                android:padding="8dp"
+                android:shadowColor="@color/light_black"
+                android:text="@string/cancel"
+                android:textColor="@color/dark_white"
+                android:textColorLink="@color/light_black"
+                app:strokeColor="@color/light_black" />
+        </LinearLayout>
+    </FrameLayout>
 </layout>

@@ -16,4 +16,15 @@ interface Api  {
         @Query("per_page")
         perPage:Int
     ): Call<PageData>
+    @GET("search")
+    fun getSearched(
+        @Header("Authorization")
+        credential:String,
+        @Query("page")
+        page:Int,
+        @Query("per_page")
+        perPage:Int,
+        @Query("query")
+        Query:String
+    ): Call<PageData>
 }

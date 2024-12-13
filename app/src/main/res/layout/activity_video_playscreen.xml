@@ -6,18 +6,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/light_black"
     tools:context=".VideoPlayscreen">
 
     <androidx.media3.ui.PlayerView
         android:id="@+id/video_view"
-        android:layout_width="match_parent"
-        android:layout_height="400dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_gravity="center"
         app:auto_show="true"
         app:controller_layout_id="@layout/exo_player_controller"
         app:show_shuffle_button="true"
         app:repeat_toggle_modes="none"
-        app:resize_mode="fixed_width"
         app:surface_type="surface_view"
         app:use_controller="true" />
 

@@ -22,7 +22,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 
 
-class VideoPlayscreen : AppCompatActivity() {
+class VideoPlayscreen : AppCompatActivity(){
     private var player: ExoPlayer? = null
     private lateinit var playerView: PlayerView
     private lateinit var qualityBut: Button
@@ -35,10 +35,13 @@ class VideoPlayscreen : AppCompatActivity() {
         setContentView(R.layout.activity_video_playscreen)
         enableEdgeToEdge()
 
-
         val i: String? = intent.getStringExtra("url")
         val textView: TextView = findViewById(R.id.titleofplayer)
-        textView.text = i.toString().substring(29)
+        val tit = i.toString().substring(29).replace("-"," ")
+        textView.text = buildString {
+            append(tit.uppercase()[0])
+            append(tit.substring(1))
+        }
         playerView = findViewById(R.id.video_view)
         val windowInsetsController =
             WindowCompat.getInsetsController(window, window.decorView)
@@ -82,7 +85,7 @@ class VideoPlayscreen : AppCompatActivity() {
                 track.addView(mybut)
                 val uri = Uri.parse(videoUrl[index])
                 val mediaItem: MediaItem = MediaItem.fromUri(uri)
-                mediaItemArrayList.add(mediaItem);
+                mediaItemArrayList.add(mediaItem)
                 mybut.text = videoQuality?.get(index) ?: " "
                 mybut.setOnClickListener{onQualityChangedButtons(index)}
             }
@@ -116,7 +119,7 @@ class VideoPlayscreen : AppCompatActivity() {
                 requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
                 val params = playerView.layoutParams
                 params.width = ViewGroup.LayoutParams.MATCH_PARENT
-                params.height = (200 * applicationContext.resources.displayMetrics.density).toInt()
+                params.height = ViewGroup.LayoutParams.WRAP_CONTENT
                 playerView.layoutParams = params
                 fullscreen = false
             } else {
@@ -140,7 +143,7 @@ class VideoPlayscreen : AppCompatActivity() {
         }
     }
     private fun onQualityChangedButtons(s: Int) {
-        val pos= player?.currentPosition;
+        val pos= player?.currentPosition
         player?.setMediaItem(mediaItemArrayList[s])
 
         player!!.prepare()
@@ -160,4 +163,12 @@ class VideoPlayscreen : AppCompatActivity() {
         dialog.show()
 
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        finish()
+        player?.pause()
+    }
+
 }
