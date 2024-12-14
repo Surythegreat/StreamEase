@@ -1,6 +1,6 @@
 package com.example.streamease
 
-import android.annotation.SuppressLint
+ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -34,11 +34,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var loadingPB: ProgressBar
     private lateinit var videolist: List<Video>
 
+
     private lateinit var blurryView: ImageView
     private lateinit var searchContainer: LinearLayout
     private lateinit var videosearch: SearchView
     private lateinit var cancelButton: TextView
     private lateinit var touchInterceptor: View
+    private lateinit var notfoundtext:TextView
     private var hassearched:Boolean = false
     private var lastquery:String = ""
 
@@ -54,6 +56,7 @@ class MainActivity : AppCompatActivity() {
         videosearch = binding.videoSearch
         cancelButton = binding.cancelButton
         touchInterceptor = binding.touchInterceptor
+        notfoundtext = binding.notfoundtext
         videosearch.setOnQueryTextListener(object:SearchView.OnQueryTextListener{
             override fun onQueryTextSubmit(query: String?): Boolean {
                 onSearched(query)
@@ -77,7 +80,7 @@ class MainActivity : AppCompatActivity() {
         loadingPB = binding.idPBLoading
         videolist = listOf()
 
-        fetchPopularData(page, totalRes/perPage)
+        fetchPopularData(page, totalRes)
         setUpPagination()
 
         // Set an onClickListener to consume touch events
@@ -105,10 +108,11 @@ class MainActivity : AppCompatActivity() {
         page=1
         videolist= emptyList()
         hassearched=true
+        totalRes=Int.MAX_VALUE
         if (query != null) {
             lastquery=query
         }
-        fetchSearchedData(page,totalRes/perPage,query)
+        fetchSearchedData(page,totalRes,query)
     }
 
     private fun fetchSearchedData(
@@ -124,32 +128,11 @@ class MainActivity : AppCompatActivity() {
         if (query != null) {
             RetrofitClient.instance?.api?.getSearched(apiKEY, page, perPage,query)?.enqueue(object : Callback<PageData> {
                 override fun onResponse(call: Call<PageData>, response: Response<PageData>) {
-                    for (vid in response.body()?.videos!!) {
-                        videolist += vid
-                    }
-                    val adapter = myAdapter(this@MainActivity, videolist)
-                    recycleV.adapter = adapter
-                    recycleV.layoutManager = linearLayoutManager
-                    adapter.setOnItemClickListner(object : myAdapter.onItemClickListner {
-                        override fun onItemClick(position: Int) {
-                            val intent = Intent(this@MainActivity, VideoPlayscreen::class.java)
-                            intent.putExtra("url", videolist[position].url)
-                            val videolinklist: ArrayList<String> = arrayListOf()
-                            val videoqualitylist: ArrayList<String> = arrayListOf()
-                            for (vid in videolist[position].video_files) {
-                                videolinklist.add(vid.link)
-                                videoqualitylist.add("${vid.quality} : ${vid.width}X${vid.height}")
-                            }
-                            intent.putExtra("Videolinks", videolinklist)
-                            intent.putExtra("videoquality", videoqualitylist)
-                            startActivity(intent)
-                        }
-                    })
-                    this@MainActivity.totalRes = response.body()?.total_results!!
+                    responseHandle(response)
                 }
 
                 override fun onFailure(call: Call<PageData>, t: Throwable) {
-                    Toast.makeText(this@MainActivity, t.message, Toast.LENGTH_SHORT).show()
+                    failureHandle(t)
                 }
             }
             )
@@ -189,9 +172,9 @@ class MainActivity : AppCompatActivity() {
                 page++
                 loadingPB.visibility = View.VISIBLE
                 if(hassearched==false){
-                fetchPopularData( page, totalRes/perPage)}
+                fetchPopularData( page, totalRes)}
                 else{
-                    fetchSearchedData(page,totalRes/perPage,lastquery)
+                    fetchSearchedData(page,totalRes,lastquery)
                 }
             }
         })
@@ -205,33 +188,49 @@ class MainActivity : AppCompatActivity() {
         }
         RetrofitClient.instance?.api?.getPopular(apiKEY, i, perPage)?.enqueue(object : Callback<PageData> {
             override fun onResponse(call: Call<PageData>, response: Response<PageData>) {
-                for (vid in response.body()?.videos!!) {
-                    videolist += vid
-                }
-                val adapter = myAdapter(this@MainActivity, videolist)
-                recycleV.adapter = adapter
-                recycleV.layoutManager = linearLayoutManager
-                adapter.setOnItemClickListner(object : myAdapter.onItemClickListner {
-                    override fun onItemClick(position: Int) {
-                        val intent = Intent(this@MainActivity, VideoPlayscreen::class.java)
-                        intent.putExtra("url", videolist[position].url)
-                        val videolinklist: ArrayList<String> = arrayListOf()
-                        val videoqualitylist: ArrayList<String> = arrayListOf()
-                        for (vid in videolist[position].video_files) {
-                            videolinklist.add(vid.link)
-                            videoqualitylist.add("${vid.quality} : ${vid.width}X${vid.height}")
-                        }
-                        intent.putExtra("Videolinks", videolinklist)
-                        intent.putExtra("videoquality", videoqualitylist)
-                        startActivity(intent)
-                    }
-                })
-                this@MainActivity.totalRes = response.body()?.total_results!!
+               responseHandle(response)
             }
 
             override fun onFailure(call: Call<PageData>, t: Throwable) {
-                Toast.makeText(this@MainActivity, t.message, Toast.LENGTH_SHORT).show()
+                failureHandle(t)
             }
         })
+    }
+    fun responseHandle(response: Response<PageData>) {
+        if ((response.body()?.videos?.size ?: 0) == 0){
+            val t=Throwable("no Viedos Found")
+            failureHandle(t)
+        }else{
+            notfoundtext.visibility=View.GONE
+        }
+        for (vid in response.body()?.videos!!) {
+            videolist += vid
+        }
+        val adapter = myAdapter(this@MainActivity, videolist)
+        recycleV.adapter = adapter
+        recycleV.layoutManager = linearLayoutManager
+        adapter.setOnItemClickListner(object : myAdapter.onItemClickListner {
+            override fun onItemClick(position: Int) {
+                val intent = Intent(this@MainActivity, VideoPlayscreen::class.java)
+                intent.putExtra("url", videolist[position].url)
+                val videolinklist: ArrayList<String> = arrayListOf()
+                val videoqualitylist: ArrayList<String> = arrayListOf()
+                for (vid in videolist[position].video_files) {
+                    videolinklist.add(vid.link)
+                    videoqualitylist.add("${vid.quality} : ${vid.width}X${vid.height}")
+                }
+                intent.putExtra("Videolinks", videolinklist)
+                intent.putExtra("videoquality", videoqualitylist)
+                startActivity(intent)
+            }
+
+        })
+        this@MainActivity.totalRes = response.body()?.total_results!!/perPage
+    }
+    fun failureHandle(t: Throwable) {
+        Toast.makeText(this@MainActivity, t.message, Toast.LENGTH_SHORT).show()
+        notfoundtext.text=t.message
+        notfoundtext.visibility=View.VISIBLE
+        loadingPB.visibility=View.GONE
     }
 }

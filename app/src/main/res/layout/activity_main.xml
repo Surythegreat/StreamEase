@@ -68,6 +68,18 @@
             </androidx.core.widget.NestedScrollView>
         </LinearLayout>
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:visibility="gone"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:fontFamily="@font/roboto_medium"
+            android:textColor="@color/dark_white"
+            android:id="@+id/notfoundtext"
+            android:textSize="30sp"
+            android:text="cant"/>
+
+
         <!-- Blurry overlay -->
         <ImageView
             android:id="@+id/blurryView"
