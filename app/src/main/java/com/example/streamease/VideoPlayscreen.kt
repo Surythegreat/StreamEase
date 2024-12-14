@@ -20,6 +20,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import com.bumptech.glide.Glide
 
 
 class VideoPlayscreen : AppCompatActivity(){
@@ -139,6 +140,25 @@ class VideoPlayscreen : AppCompatActivity(){
                 params.height = ViewGroup.LayoutParams.MATCH_PARENT
                 playerView.layoutParams = params
                 fullscreen = true
+            }
+        }
+
+        val scroll = findViewById<LinearLayout>(R.id.photos)
+        val pictures = intent.getStringArrayListExtra("pictures")
+        if (pictures != null) {
+            for (picture in pictures){
+                val image = ImageView(this)
+
+                Glide.with(image).load(picture).into(image)
+                scroll.addView(image)
+                val la = image.layoutParams as LinearLayout.LayoutParams
+                la.setMargins(10,3,10,3)
+                la.height =500
+                if(image.height!=0) {
+                    la.width = image.width / image.height * la.height
+                }
+
+                image.layoutParams=la
             }
         }
     }

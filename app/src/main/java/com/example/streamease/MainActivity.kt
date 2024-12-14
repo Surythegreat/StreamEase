@@ -215,12 +215,17 @@ class MainActivity : AppCompatActivity() {
                 intent.putExtra("url", videolist[position].url)
                 val videolinklist: ArrayList<String> = arrayListOf()
                 val videoqualitylist: ArrayList<String> = arrayListOf()
+                val pictures: ArrayList<String> = arrayListOf()
                 for (vid in videolist[position].video_files) {
                     videolinklist.add(vid.link)
                     videoqualitylist.add("${vid.quality} : ${vid.width}X${vid.height}")
                 }
+                for(vid in videolist[position].video_pictures){
+                    pictures.add(vid.picture)
+                }
                 intent.putExtra("Videolinks", videolinklist)
                 intent.putExtra("videoquality", videoqualitylist)
+                intent.putExtra("pictures", pictures)
                 startActivity(intent)
             }
 
