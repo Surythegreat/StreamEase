@@ -4,8 +4,10 @@ package com.example.streamease
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -17,10 +19,14 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.widget.NestedScrollView
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.bumptech.glide.Glide
+import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.appbar.CollapsingToolbarLayout
+import kotlin.math.log
 
 
 class VideoPlayscreen : AppCompatActivity(){
@@ -30,11 +36,18 @@ class VideoPlayscreen : AppCompatActivity(){
     private lateinit var dialog: AlertDialog
     private lateinit var mediaItemArrayList: ArrayList<MediaItem>
     private var videoQuality:java.util.ArrayList<String>? = null
+    val Int.dp: Int
+        get() = (this * resources.displayMetrics.density).toInt()
+    private lateinit var nestedScrollView:NestedScrollView
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_video_playscreen)
         enableEdgeToEdge()
+
+        nestedScrollView=findViewById(R.id.rest_Info)
+
 
         val i: String? = intent.getStringExtra("url")
         val textView: TextView = findViewById(R.id.titleofplayer)
@@ -105,43 +118,81 @@ class VideoPlayscreen : AppCompatActivity(){
 
         var fullscreen = false
         val fullscreenButton = playerView.findViewById<ImageView>(R.id.exo_fullscreen_icon)
+
+        // Enter fullscreen mode
+        // Reference to the CollapsingToolbarLayout
+        val collapsingToolbarLayout: CollapsingToolbarLayout = findViewById(R.id.collapsing_toolbar)
+
         fullscreenButton.setOnClickListener {
+            val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+
             if (fullscreen) {
+                // Exit fullscreen mode
                 fullscreenButton.setImageDrawable(
                     ContextCompat.getDrawable(
                         this,
                         R.drawable.ic_fullscreen_open
                     )
                 )
-                windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
-                if (supportActionBar != null) {
-                    supportActionBar!!.show()
-                }
+
+                // Show system bars
+                windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
+                windowInsetsController.systemBarsBehavior =
+                    WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
+                supportActionBar?.show()
+
+                // Re-enable collapsing behavior
+                val params = collapsingToolbarLayout.layoutParams as AppBarLayout.LayoutParams
+                params.scrollFlags = AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or
+                        AppBarLayout.LayoutParams.SCROLL_FLAG_EXIT_UNTIL_COLLAPSED
+                collapsingToolbarLayout.layoutParams = params
+
+                // Restore orientation
                 requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                val params = playerView.layoutParams
-                params.width = ViewGroup.LayoutParams.MATCH_PARENT
-                params.height = ViewGroup.LayoutParams.WRAP_CONTENT
-                playerView.layoutParams = params
+
+                // Restore PlayerView size
+                val paramsPlayerView = playerView.layoutParams
+                paramsPlayerView.width = ViewGroup.LayoutParams.MATCH_PARENT
+                paramsPlayerView.height = 300.dp // Original height for portrait mode
+                playerView.layoutParams = paramsPlayerView
+
                 fullscreen = false
             } else {
+                // Enter fullscreen mode
                 fullscreenButton.setImageDrawable(
                     ContextCompat.getDrawable(
                         this,
                         R.drawable.ic_fullscreen_close
                     )
                 )
+
+                // Hide system bars
                 windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
-                if (supportActionBar != null) {
-                    supportActionBar!!.hide()
-                }
+                windowInsetsController.systemBarsBehavior =
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                supportActionBar?.hide()
+
+                // Disable collapsing behavior
+                val params = collapsingToolbarLayout.layoutParams as AppBarLayout.LayoutParams
+                params.scrollFlags = 0 // Disable collapsing
+                collapsingToolbarLayout.layoutParams = params
+
+                // Set orientation to landscape
                 requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                val params = playerView.layoutParams
-                params.width = ViewGroup.LayoutParams.MATCH_PARENT
-                params.height = ViewGroup.LayoutParams.MATCH_PARENT
-                playerView.layoutParams = params
+
+                // Make PlayerView full screen
+                val displayMetrics = resources.displayMetrics
+                val screenHeight = displayMetrics.widthPixels
+                val paramsPlayerView = playerView.layoutParams
+                paramsPlayerView.width = ViewGroup.LayoutParams.MATCH_PARENT
+                paramsPlayerView.height = screenHeight
+                playerView.layoutParams = paramsPlayerView
+
                 fullscreen = true
             }
         }
+
+
 
         val scroll = findViewById<LinearLayout>(R.id.photos)
         val pictures = intent.getStringArrayListExtra("pictures")
@@ -153,7 +204,8 @@ class VideoPlayscreen : AppCompatActivity(){
                 scroll.addView(image)
                 val la = image.layoutParams as LinearLayout.LayoutParams
                 la.setMargins(10,3,10,3)
-                la.height =500
+                la.height =150
+                Log.d("main",la.height.toString())
                 if(image.height!=0) {
                     la.width = image.width / image.height * la.height
                 }

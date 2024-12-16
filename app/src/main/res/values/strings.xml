@@ -3,4 +3,10 @@
     <string name="select_quality">Select Quality</string>
     <string name="cancel">CANCEL</string>
     <string name="previws">PREVIWS:</string>
+    <string name="all_fields_mandatory">all_fields_mandatory\n</string>
+    <string name="invalid_email">invalid_email\n</string>
+    <string name="invalid_password">invalid_password\n</string>
+    <string name="signup_successful">signUp_successful</string>
+    <string name="signup_failed">sign_up failed\n</string>
+    <string name="user_exists">user_exists\n</string>
 </resources>
