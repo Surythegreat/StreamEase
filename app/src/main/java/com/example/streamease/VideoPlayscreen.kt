@@ -1,13 +1,11 @@
 package com.example.streamease
 
-
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -26,221 +24,167 @@ import androidx.media3.ui.PlayerView
 import com.bumptech.glide.Glide
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
-import kotlin.math.log
 
-
-class VideoPlayscreen : AppCompatActivity(){
+class VideoPlayscreen : AppCompatActivity() {
     private var player: ExoPlayer? = null
     private lateinit var playerView: PlayerView
-    private lateinit var qualityBut: Button
-    private lateinit var dialog: AlertDialog
-    private lateinit var mediaItemArrayList: ArrayList<MediaItem>
-    private var videoQuality:java.util.ArrayList<String>? = null
+    private lateinit var qualityButton: Button
+    private lateinit var qualityDialog: AlertDialog
+    private val mediaItemList = arrayListOf<MediaItem>()
+    private var videoQualities: ArrayList<String>? = null
+
     val Int.dp: Int
         get() = (this * resources.displayMetrics.density).toInt()
-    private lateinit var nestedScrollView:NestedScrollView
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_video_playscreen)
         enableEdgeToEdge()
 
-        nestedScrollView=findViewById(R.id.rest_Info)
+        setupPlayer()
+        setupVideoTitle()
+        setupQualitySelector()
+        setupFullscreenHandler()
+        setupPreviewImages()
+    }
 
-
-        val i: String? = intent.getStringExtra("url")
-        val textView: TextView = findViewById(R.id.titleofplayer)
-        val tit = i.toString().substring(29).replace("-"," ")
-        textView.text = buildString {
-            append(tit.uppercase()[0])
-            append(tit.substring(1))
-        }
+    private fun setupPlayer() {
         playerView = findViewById(R.id.video_view)
-        val windowInsetsController =
-            WindowCompat.getInsetsController(window, window.decorView)
-        windowInsetsController.systemBarsBehavior =
-            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        qualityBut = playerView.findViewById(R.id.quality_button)
-        qualityBut.setOnClickListener { onQualityButtonPressed() }
-
-        // Initialize ExoPlayer
         player = ExoPlayer.Builder(this).build()
         playerView.player = player
 
-//        playbutton = playerView.findViewById(R.id.exo_play)
-//        pausebutton = playerView.findViewById(R.id.exo_pause)
-//
-//        playbutton.setOnClickListener(object : OnClickListener {
-//            override fun onClick(p0: View?) {
-//                play()
-//            }
-//
-//        })
-//        pausebutton.setOnClickListener(object : OnClickListener {
-//            override fun onClick(p0: View?) {
-//                pause()
-//            }
-//
-//        })
-        val p = View.inflate(this, R.layout.qualitytrack, null)
-        val builder: AlertDialog.Builder = AlertDialog.Builder(this)
-        builder.setView(p)
-        dialog = builder.create()
+        // Get video URLs and qualities
+        val videoUrls = intent.getStringArrayListExtra("Videolinks")
+        videoQualities = intent.getStringArrayListExtra("videoquality")
 
-        mediaItemArrayList = arrayListOf()
-        val track:LinearLayout =p.findViewById(R.id.quality_track)
-        // Build the MediaItem
-        val videoUrl = intent.getStringArrayListExtra("Videolinks")
-        videoQuality= intent.getStringArrayListExtra("videoquality")
-        if (videoUrl != null) {
-            for (index in videoUrl.indices){
-                val mybut = layoutInflater.inflate(R.layout.qualitybutton_layout,track,false) as Button
-                track.addView(mybut)
-                val uri = Uri.parse(videoUrl[index])
-                val mediaItem: MediaItem = MediaItem.fromUri(uri)
-                mediaItemArrayList.add(mediaItem)
-                mybut.text = videoQuality?.get(index) ?: " "
-                mybut.setOnClickListener{onQualityChangedButtons(index)}
-            }
+        // Populate media items
+        videoUrls?.forEachIndexed { index, url ->
+            val uri = Uri.parse(url)
+            val mediaItem = MediaItem.fromUri(uri)
+            mediaItemList.add(mediaItem)
         }
 
+        // Prepare the player
+        player?.setMediaItem(mediaItemList.first())
+        player?.prepare()
+        player?.playWhenReady = true
+    }
 
-        qualityBut.text = buildString {
-            append("Quality:")
-            append(videoQuality?.get(0) ?: " ")
+    private fun setupVideoTitle() {
+        val url: String? = intent.getStringExtra("url")
+        val titleTextView: TextView = findViewById(R.id.titleofplayer)
+
+        // Extract video title
+        val title = url?.substring(29)?.replace("-", " ")?.replaceFirstChar { it.uppercase() }
+        titleTextView.text = title
+    }
+
+    private fun setupQualitySelector() {
+        qualityButton = playerView.findViewById(R.id.quality_button)
+        qualityButton.text = "Quality: ${videoQualities?.firstOrNull() ?: "N/A"}"
+
+        val qualityLayout = layoutInflater.inflate(R.layout.qualitytrack, null)
+        val qualityTrackLayout: LinearLayout = qualityLayout.findViewById(R.id.quality_track)
+
+        // Populate quality options
+        videoQualities?.forEachIndexed { index, quality ->
+            val qualityButton = layoutInflater.inflate(R.layout.qualitybutton_layout, qualityTrackLayout, false) as Button
+            qualityButton.text = quality
+            qualityButton.setOnClickListener { changeQuality(index) }
+            qualityTrackLayout.addView(qualityButton)
         }
-        // Prepare the player with the media item
-        player!!.setMediaItem(mediaItemArrayList[0])
-        player!!.prepare()
-        player?.playWhenReady = true // Start playing when ready
 
+        // Create quality dialog
+        qualityDialog = AlertDialog.Builder(this)
+            .setView(qualityLayout)
+            .create()
 
-        var fullscreen = false
+        qualityButton.setOnClickListener {
+            player?.pause()
+            qualityDialog.show()
+        }
+    }
+
+    private fun changeQuality(index: Int) {
+        val position = player?.currentPosition ?: 0
+        player?.setMediaItem(mediaItemList[index])
+        player?.prepare()
+        player?.seekTo(position)
+        player?.playWhenReady = true
+        qualityDialog.dismiss()
+
+        qualityButton.text = "Quality: ${videoQualities?.get(index) ?: "N/A"}"
+    }
+
+    private fun setupFullscreenHandler() {
         val fullscreenButton = playerView.findViewById<ImageView>(R.id.exo_fullscreen_icon)
-
-        // Enter fullscreen mode
-        // Reference to the CollapsingToolbarLayout
-        val collapsingToolbarLayout: CollapsingToolbarLayout = findViewById(R.id.collapsing_toolbar)
+        val collapsingToolbar: CollapsingToolbarLayout = findViewById(R.id.collapsing_toolbar)
+        var isFullscreen = false
 
         fullscreenButton.setOnClickListener {
             val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
-
-            if (fullscreen) {
-                // Exit fullscreen mode
-                fullscreenButton.setImageDrawable(
-                    ContextCompat.getDrawable(
-                        this,
-                        R.drawable.ic_fullscreen_open
-                    )
-                )
-
-                // Show system bars
-                windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
-                windowInsetsController.systemBarsBehavior =
-                    WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
-                supportActionBar?.show()
-
-                // Re-enable collapsing behavior
-                val params = collapsingToolbarLayout.layoutParams as AppBarLayout.LayoutParams
-                params.scrollFlags = AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or
-                        AppBarLayout.LayoutParams.SCROLL_FLAG_EXIT_UNTIL_COLLAPSED
-                collapsingToolbarLayout.layoutParams = params
-
-                // Restore orientation
-                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-
-                // Restore PlayerView size
-                val paramsPlayerView = playerView.layoutParams
-                paramsPlayerView.width = ViewGroup.LayoutParams.MATCH_PARENT
-                paramsPlayerView.height = 300.dp // Original height for portrait mode
-                playerView.layoutParams = paramsPlayerView
-
-                fullscreen = false
+            if (isFullscreen) {
+                exitFullscreen(windowInsetsController, collapsingToolbar, fullscreenButton)
             } else {
-                // Enter fullscreen mode
-                fullscreenButton.setImageDrawable(
-                    ContextCompat.getDrawable(
-                        this,
-                        R.drawable.ic_fullscreen_close
-                    )
-                )
-
-                // Hide system bars
-                windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
-                windowInsetsController.systemBarsBehavior =
-                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-                supportActionBar?.hide()
-
-                // Disable collapsing behavior
-                val params = collapsingToolbarLayout.layoutParams as AppBarLayout.LayoutParams
-                params.scrollFlags = 0 // Disable collapsing
-                collapsingToolbarLayout.layoutParams = params
-
-                // Set orientation to landscape
-                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-
-                // Make PlayerView full screen
-                val displayMetrics = resources.displayMetrics
-                val screenHeight = displayMetrics.widthPixels
-                val paramsPlayerView = playerView.layoutParams
-                paramsPlayerView.width = ViewGroup.LayoutParams.MATCH_PARENT
-                paramsPlayerView.height = screenHeight
-                playerView.layoutParams = paramsPlayerView
-
-                fullscreen = true
+                enterFullscreen(windowInsetsController, collapsingToolbar, fullscreenButton)
             }
+            isFullscreen = !isFullscreen
         }
+    }
 
+    private fun enterFullscreen(
+        controller: WindowInsetsControllerCompat,
+        toolbar: CollapsingToolbarLayout,
+        button: ImageView
+    ) {
+        button.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_fullscreen_close))
+        controller.hide(WindowInsetsCompat.Type.systemBars())
+        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        supportActionBar?.hide()
+        toolbar.layoutParams = (toolbar.layoutParams as AppBarLayout.LayoutParams).apply {
+            scrollFlags = 0
+        }
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        playerView.layoutParams = playerView.layoutParams.apply {
+            height = ViewGroup.LayoutParams.MATCH_PARENT
+        }
+    }
 
+    private fun exitFullscreen(
+        controller: WindowInsetsControllerCompat,
+        toolbar: CollapsingToolbarLayout,
+        button: ImageView
+    ) {
+        button.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_fullscreen_open))
+        controller.show(WindowInsetsCompat.Type.systemBars())
+        supportActionBar?.show()
+        toolbar.layoutParams = (toolbar.layoutParams as AppBarLayout.LayoutParams).apply {
+            scrollFlags = AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or AppBarLayout.LayoutParams.SCROLL_FLAG_EXIT_UNTIL_COLLAPSED
+        }
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        playerView.layoutParams = playerView.layoutParams.apply {
+            height = 300.dp
+        }
+    }
 
-        val scroll = findViewById<LinearLayout>(R.id.photos)
+    private fun setupPreviewImages() {
+        val photosLayout: LinearLayout = findViewById(R.id.photos)
         val pictures = intent.getStringArrayListExtra("pictures")
-        if (pictures != null) {
-            for (picture in pictures){
-                val image = ImageView(this)
 
-                Glide.with(image).load(picture).into(image)
-                scroll.addView(image)
-                val la = image.layoutParams as LinearLayout.LayoutParams
-                la.setMargins(10,3,10,3)
-                la.height =150
-                Log.d("main",la.height.toString())
-                if(image.height!=0) {
-                    la.width = image.width / image.height * la.height
+        pictures?.forEach { picture ->
+            val imageView = ImageView(this).apply {
+                Glide.with(this).load(picture).into(this)
+                layoutParams = LinearLayout.LayoutParams(150.dp, 150.dp).apply {
+                    setMargins(10.dp, 3.dp, 10.dp, 3.dp)
                 }
-
-                image.layoutParams=la
             }
+            photosLayout.addView(imageView)
         }
-    }
-    private fun onQualityChangedButtons(s: Int) {
-        val pos= player?.currentPosition
-        player?.setMediaItem(mediaItemArrayList[s])
-
-        player!!.prepare()
-        if (pos != null) {
-            player!!.seekTo(pos)
-        }
-        player?.playWhenReady = true
-        dialog.hide()
-        qualityBut.text = buildString {
-            append("Quality:")
-            append(videoQuality?.get(s) ?: " ")
-        }
-    }
-    private fun onQualityButtonPressed() {
-
-        player?.pause()
-        dialog.show()
-
     }
 
     override fun onDestroy() {
         super.onDestroy()
-
-        finish()
-        player?.pause()
+        player?.release()
+        player = null
     }
-
 }

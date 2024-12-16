@@ -57,6 +57,13 @@ class MainActivity : AppCompatActivity() {
         cancelButton = binding.cancelButton
         touchInterceptor = binding.touchInterceptor
         notfoundtext = binding.notfoundtext
+        nestedScrollView = binding.nestedscrollview
+        recycleV = binding.recycleview
+        linearLayoutManager = LinearLayoutManager(this)
+        loadingPB = binding.idPBLoading
+        videolist = listOf()
+
+        //setting the searchView Listner
         videosearch.setOnQueryTextListener(object:SearchView.OnQueryTextListener{
             override fun onQueryTextSubmit(query: String?): Boolean {
                 onSearched(query)
@@ -69,22 +76,16 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
-        // Setup search button
+        // Setup search buttons
         binding.searchButton.setOnClickListener { toggleSearch() }
         cancelButton.setOnClickListener { toggleSearch() }
+        touchInterceptor.setOnTouchListener { _, _ -> true }
 
-        // Initialize other views
-        nestedScrollView = binding.nestedscrollview
-        recycleV = binding.recycleview
-        linearLayoutManager = LinearLayoutManager(this)
-        loadingPB = binding.idPBLoading
-        videolist = listOf()
-
+        //fetching popular data and setting up pagination
         fetchPopularData(page, totalRes)
         setUpPagination()
 
-        // Set an onClickListener to consume touch events
-        touchInterceptor.setOnTouchListener { _, _ -> true }
+
     }
 
     private fun toggleSearch() {
@@ -115,11 +116,7 @@ class MainActivity : AppCompatActivity() {
         fetchSearchedData(page,totalRes,query)
     }
 
-    private fun fetchSearchedData(
-        page: Int,
-        totalpages: Int,
-        query: String?
-    ) {
+    private fun fetchSearchedData(page: Int, totalpages: Int, query: String?) {
         if (page > totalpages) {
             Toast.makeText(this, "That's all the data.", Toast.LENGTH_SHORT).show()
             loadingPB.visibility = View.GONE
@@ -171,7 +168,7 @@ class MainActivity : AppCompatActivity() {
             if (scrollY == v.getChildAt(0).measuredHeight - v.measuredHeight) {
                 page++
                 loadingPB.visibility = View.VISIBLE
-                if(hassearched==false){
+                if(!hassearched){
                 fetchPopularData( page, totalRes)}
                 else{
                     fetchSearchedData(page,totalRes,lastquery)
@@ -198,7 +195,7 @@ class MainActivity : AppCompatActivity() {
     }
     fun responseHandle(response: Response<PageData>) {
         if ((response.body()?.videos?.size ?: 0) == 0){
-            val t=Throwable("no Viedos Found")
+            val t=Throwable("no Videos Found")
             failureHandle(t)
         }else{
             notfoundtext.visibility=View.GONE
@@ -211,27 +208,32 @@ class MainActivity : AppCompatActivity() {
         recycleV.layoutManager = linearLayoutManager
         adapter.setOnItemClickListner(object : myAdapter.onItemClickListner {
             override fun onItemClick(position: Int) {
-                val intent = Intent(this@MainActivity, VideoPlayscreen::class.java)
-                intent.putExtra("url", videolist[position].url)
-                val videolinklist: ArrayList<String> = arrayListOf()
-                val videoqualitylist: ArrayList<String> = arrayListOf()
-                val pictures: ArrayList<String> = arrayListOf()
-                for (vid in videolist[position].video_files) {
-                    videolinklist.add(vid.link)
-                    videoqualitylist.add("${vid.quality} : ${vid.width}X${vid.height}")
-                }
-                for(vid in videolist[position].video_pictures){
-                    pictures.add(vid.picture)
-                }
-                intent.putExtra("Videolinks", videolinklist)
-                intent.putExtra("videoquality", videoqualitylist)
-                intent.putExtra("pictures", pictures)
-                startActivity(intent)
+                strartVideoScene(position)
             }
 
         })
         this@MainActivity.totalRes = response.body()?.total_results!!/perPage
     }
+
+    private fun strartVideoScene(position: Int) {
+        val intent = Intent(this@MainActivity, VideoPlayscreen::class.java)
+        intent.putExtra("url", videolist[position].url)
+        val videolinklist: ArrayList<String> = arrayListOf()
+        val videoqualitylist: ArrayList<String> = arrayListOf()
+        val pictures: ArrayList<String> = arrayListOf()
+        for (vid in videolist[position].video_files) {
+            videolinklist.add(vid.link)
+            videoqualitylist.add("${vid.quality} : ${vid.width}X${vid.height}")
+        }
+        for(vid in videolist[position].video_pictures){
+            pictures.add(vid.picture)
+        }
+        intent.putExtra("Videolinks", videolinklist)
+        intent.putExtra("videoquality", videoqualitylist)
+        intent.putExtra("pictures", pictures)
+        startActivity(intent)
+    }
+
     fun failureHandle(t: Throwable) {
         Toast.makeText(this@MainActivity, t.message, Toast.LENGTH_SHORT).show()
         notfoundtext.text=t.message
