@@ -10,71 +10,76 @@
 
     <!-- AppBar with collapsing PlayerView -->
     <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
         android:id="@+id/app_bar_layout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:elevation="0dp">
+        app:elevation="4dp"
+        android:background="@color/light_black">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/collapsing_toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/collapsing_toolbar"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:contentScrim="@color/light_black">
 
-            <!-- PlayerView that collapses -->
+            <!-- PlayerView -->
             <androidx.media3.ui.PlayerView
                 android:id="@+id/video_view"
                 android:layout_width="match_parent"
-                android:layout_height="300dp"
-            app:layout_collapseMode="parallax"
+                android:layout_height="@dimen/PlayerViewHeight"
+                app:layout_collapseMode="parallax"
                 app:resize_mode="fit"
-            app:auto_show="true"
-            app:controller_layout_id="@layout/exo_player_controller"
-            app:show_shuffle_button="true"
-            app:repeat_toggle_modes="none"
-            app:surface_type="surface_view"
-            app:use_controller="true" />
+                app:auto_show="true"
+                app:controller_layout_id="@layout/exo_player_controller"
+                app:show_shuffle_button="true"
+                app:repeat_toggle_modes="none"
+                app:surface_type="surface_view"
+                app:use_controller="true" />
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Content below the shrinking PlayerView -->
+    <!-- Content Below -->
     <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
         android:id="@+id/rest_Info"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:background="@color/light_black">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="@dimen/general_pading">
 
             <!-- Title TextView -->
             <TextView
                 android:id="@+id/titleofplayer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="TITLE"
-                android:textSize="16sp"
+                android:text=""
+                android:textSize="@dimen/title_size"
                 android:textColor="@color/dark_white"
                 android:fontFamily="@font/roboto_medium"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:paddingBottom="@dimen/general_pading" />
 
-            <!-- Previews TextView -->
+            <!-- Previews Section -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/previws"
-                android:textSize="16sp"
+                android:textSize="@dimen/smal_title_Size"
                 android:textColor="@color/dark_white"
                 android:fontFamily="@font/roboto_medium"
+                android:paddingBottom="@dimen/general_pading"
                 android:textStyle="bold" />
 
-            <!-- Horizontal ScrollView for images -->
             <HorizontalScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:padding="@dimen/smaller_pading">
 
                 <LinearLayout
                     android:id="@+id/photos"

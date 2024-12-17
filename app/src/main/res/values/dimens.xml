@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="fullscreen_icon_data">45dp</dimen>
+    <dimen name="PlayerViewHeight">300dp</dimen>
+    <dimen name="general_pading">16dp</dimen>
+    <dimen name="title_size">18sp</dimen>
+    <dimen name="smal_title_Size">16sp</dimen>
+    <dimen name="smaller_pading">4dp</dimen>
+    <dimen name="general_margin">10dp</dimen>
 </resources>

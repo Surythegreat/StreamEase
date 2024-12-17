@@ -2,7 +2,7 @@
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:id="@+id/videoCard"
-    android:layout_margin="10dp"
+    android:layout_margin="@dimen/general_margin"
     android:layout_height="wrap_content">
 
     <LinearLayout
@@ -17,8 +17,8 @@
             android:id="@+id/thumbnailimage"
             android:layout_width="match_parent"
             android:layout_height="200dp"
-            android:layout_margin="5dp"
-            android:layout_marginStart="10dp"/>
+            android:layout_margin="@dimen/general_margin"
+            android:layout_marginStart="@dimen/general_margin"/>
 
             <TextView
                 android:id="@+id/DESC"
@@ -27,11 +27,11 @@
                 android:layout_gravity="bottom|end"
                 android:background="@color/grey"
                 android:fontFamily="@font/roboto_medium"
-                android:padding="10dp"
-                android:layout_margin="20dp"
-                android:text="Duration : "
+                android:padding="@dimen/smaller_pading"
+                android:layout_margin="@dimen/general_margin"
+                android:text=""
                 android:textColor="@color/white"
-                android:textSize="16sp" />
+                android:textSize="@dimen/smal_title_Size" />
 
         </FrameLayout>
 
@@ -41,11 +41,11 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/roboto_medium"
                 android:layout_gravity="start"
-                android:padding="10dp"
+                android:padding="@dimen/general_pading"
                 android:maxLines="1"
-                android:text="title"
+                android:text=""
                 android:textColor="@color/white"
-                android:textSize="20sp"
+                android:textSize="@dimen/title_size"
                 android:textStyle="bold" />
 
 

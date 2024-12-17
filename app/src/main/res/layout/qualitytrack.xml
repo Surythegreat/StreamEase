@@ -3,12 +3,18 @@
     android:layout_width="wrap_content"
     android:orientation="vertical"
     android:layout_gravity="center"
-    android:padding="16dp"
+    android:background="@color/light_black"
+    android:padding="@dimen/general_pading"
     android:layout_height="200dp">
     <TextView
-        android:id="@+id/quality_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/select_quality" android:textSize="18sp" android:paddingBottom="8dp"/>
+        android:id="@+id/quality_title" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="@string/select_quality"
+        android:textColor="@color/dark_white"
+        android:fontFamily="@font/roboto_medium"
+        android:textSize="@dimen/title_size" android:paddingBottom="@dimen/smaller_pading"/>
     <ScrollView
         android:layout_width="match_parent"
+
         android:layout_height="match_parent">
         <LinearLayout
             android:id="@+id/quality_track"

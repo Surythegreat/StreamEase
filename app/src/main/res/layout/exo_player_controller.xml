@@ -1,78 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="bottom"
-    android:layoutDirection="ltr"
     android:background="#CC000000"
     android:orientation="vertical"
-    tools:targetApi="28">
+    android:padding="@dimen/smaller_pading">
 
+    <!-- Playback Controls -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:gravity="center"
-        android:paddingTop="4dp"
-        android:orientation="horizontal">
-        <ImageButton android:id="@id/exo_prev"
-            style="@style/ExoMediaButton.Previous"/>
-        <ImageButton android:id="@id/exo_rew"
-            style="@style/ExoMediaButton.Rewind"/>
-        <ImageButton android:id="@id/exo_repeat_toggle"
-            style="@style/ExoMediaButton"/>
+        android:paddingTop="@dimen/smaller_pading">
 
         <ImageButton
+            android:id="@id/exo_prev"
+            style="@style/ExoMediaButton.Previous" />
+        <ImageButton
+            android:id="@id/exo_rew"
+            style="@style/ExoMediaButton.Rewind" />
+        <ImageButton
+            android:id="@id/exo_repeat_toggle"
+            style="@style/ExoMediaButton" />
+        <ImageButton
             android:id="@id/exo_play_pause"
-
             style="@style/ExoMediaButton.Play"
             android:visibility="visible" />
-        <ImageButton android:id="@id/exo_ffwd"
-            style="@style/ExoMediaButton.FastForward"/>
-        <ImageButton android:id="@id/exo_next"
-            style="@style/ExoMediaButton.Next"/>
+        <ImageButton
+            android:id="@id/exo_ffwd"
+            style="@style/ExoMediaButton.FastForward" />
+        <ImageButton
+            android:id="@id/exo_next"
+            style="@style/ExoMediaButton.Next" />
     </LinearLayout>
+
+    <!-- Progress & Quality Controls -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:orientation="horizontal">
-        <TextView android:id="@id/exo_position"
+        android:padding="@dimen/smaller_pading">
+
+        <TextView
+            android:id="@id/exo_position"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:paddingLeft="4dp"
-            android:paddingRight="4dp"
-            android:includeFontPadding="false"
-            android:textColor="#FFBEBEBE"/>
-        <View android:id="@id/exo_progress_placeholder"
+            android:textSize="@dimen/smal_title_Size"
+            android:fontFamily="@font/roboto_medium"
+            android:textColor="@color/dark_white" />
+
+        <View
+            android:id="@id/exo_progress_placeholder"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="26dp"/>
-        <TextView android:id="@id/exo_duration"
+            android:layout_height="26dp" />
+
+        <TextView
+            android:id="@id/exo_duration"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:paddingLeft="4dp"
-            android:paddingRight="4dp"
-            android:includeFontPadding="false"
-            android:textColor="#FFBEBEBE"/>
-
+            android:textSize="@dimen/smal_title_Size"
+            android:fontFamily="@font/roboto_medium"
+            android:textColor="@color/dark_white" />
 
         <Button
             android:id="@+id/quality_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Quality: 720p" />
+            android:backgroundTint="@color/lighter_black"
+            android:text=""
+            android:fontFamily="@font/roboto_medium" />
 
         <ImageButton
             android:id="@+id/exo_settings"
-            style="@style/ExoStyledControls.Button.Bottom.Settings"
-
-            android:layout_gravity="center" />
+            style="@style/ExoStyledControls.Button.Bottom.Settings" />
         <FrameLayout
             android:id="@+id/exo_fullscreen_button"
             android:layout_width="32dp"
@@ -81,11 +85,9 @@
 
             <ImageView
                 android:id="@+id/exo_fullscreen_icon"
-                android:layout_width="@dimen/fullscreen_icon_data"
-                android:layout_height="@dimen/fullscreen_icon_data"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:layout_gravity="center"
-                android:adjustViewBounds="true"
-                android:scaleType="fitCenter"
                 android:src="@drawable/ic_fullscreen_open" />
         </FrameLayout>
     </LinearLayout>

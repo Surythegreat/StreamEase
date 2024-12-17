@@ -3,4 +3,6 @@
     android:id="@+id/quality_button_track"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:text="720p" />
+    android:backgroundTint="@color/lighter_black"
+    android:fontFamily="@font/roboto_medium"
+    android:text="" />

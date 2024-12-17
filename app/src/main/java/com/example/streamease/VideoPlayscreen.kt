@@ -3,8 +3,6 @@ package com.example.streamease
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
-import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
@@ -17,7 +15,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.widget.NestedScrollView
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
@@ -81,7 +78,7 @@ class VideoPlayscreen : AppCompatActivity() {
 
     private fun setupQualitySelector() {
         qualityButton = playerView.findViewById(R.id.quality_button)
-        qualityButton.text = "Quality: ${videoQualities?.firstOrNull() ?: "N/A"}"
+        "Quality: ${videoQualities?.firstOrNull() ?: "N/A"}".also { qualityButton.text = it }
 
         val qualityLayout = layoutInflater.inflate(R.layout.qualitytrack, null)
         val qualityTrackLayout: LinearLayout = qualityLayout.findViewById(R.id.quality_track)
@@ -113,7 +110,7 @@ class VideoPlayscreen : AppCompatActivity() {
         player?.playWhenReady = true
         qualityDialog.dismiss()
 
-        qualityButton.text = "Quality: ${videoQualities?.get(index) ?: "N/A"}"
+        "Quality: ${videoQualities?.get(index) ?: "N/A"}".also { qualityButton.text = it }
     }
 
     private fun setupFullscreenHandler() {
@@ -132,11 +129,7 @@ class VideoPlayscreen : AppCompatActivity() {
         }
     }
 
-    private fun enterFullscreen(
-        controller: WindowInsetsControllerCompat,
-        toolbar: CollapsingToolbarLayout,
-        button: ImageView
-    ) {
+    private fun enterFullscreen(controller: WindowInsetsControllerCompat, toolbar: CollapsingToolbarLayout, button: ImageView) {
         button.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_fullscreen_close))
         controller.hide(WindowInsetsCompat.Type.systemBars())
         controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
@@ -146,15 +139,17 @@ class VideoPlayscreen : AppCompatActivity() {
         }
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         playerView.layoutParams = playerView.layoutParams.apply {
-            height = ViewGroup.LayoutParams.MATCH_PARENT
+            width = ViewGroup.LayoutParams.MATCH_PARENT
+            val displayMetrics = resources.displayMetrics
+            val screenHeight = displayMetrics.widthPixels
+            height = screenHeight
         }
+
+
+
     }
 
-    private fun exitFullscreen(
-        controller: WindowInsetsControllerCompat,
-        toolbar: CollapsingToolbarLayout,
-        button: ImageView
-    ) {
+    private fun exitFullscreen(controller: WindowInsetsControllerCompat, toolbar: CollapsingToolbarLayout, button: ImageView) {
         button.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_fullscreen_open))
         controller.show(WindowInsetsCompat.Type.systemBars())
         supportActionBar?.show()
