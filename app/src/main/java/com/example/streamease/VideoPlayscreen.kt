@@ -1,5 +1,6 @@
 package com.example.streamease
 
+
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
@@ -9,19 +10,26 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.OptIn
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.TrackSelectionParameters
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.PlayerView
 import com.bumptech.glide.Glide
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
 
+
+@UnstableApi
 class VideoPlayscreen : AppCompatActivity() {
     private var player: ExoPlayer? = null
     private lateinit var playerView: PlayerView
@@ -29,6 +37,9 @@ class VideoPlayscreen : AppCompatActivity() {
     private lateinit var qualityDialog: AlertDialog
     private val mediaItemList = arrayListOf<MediaItem>()
     private var videoQualities: ArrayList<String>? = null
+    private var videoUrls: ArrayList<String>? = null
+    private lateinit var trackSelector:DefaultTrackSelector
+
 
     val Int.dp: Int
         get() = (this * resources.displayMetrics.density).toInt()
@@ -45,13 +56,19 @@ class VideoPlayscreen : AppCompatActivity() {
         setupPreviewImages()
     }
 
+    @OptIn(UnstableApi::class)
     private fun setupPlayer() {
         playerView = findViewById(R.id.video_view)
-        player = ExoPlayer.Builder(this).build()
+
+        trackSelector = DefaultTrackSelector(this)
+        player = ExoPlayer.Builder(this).setTrackSelector(trackSelector).build()
         playerView.player = player
 
+
+
+
         // Get video URLs and qualities
-        val videoUrls = intent.getStringArrayListExtra("Videolinks")
+        videoUrls = intent.getStringArrayListExtra("Videolinks")
         videoQualities = intent.getStringArrayListExtra("videoquality")
 
         // Populate media items
@@ -61,11 +78,13 @@ class VideoPlayscreen : AppCompatActivity() {
             mediaItemList.add(mediaItem)
         }
 
+
         // Prepare the player
         player?.setMediaItem(mediaItemList.first())
         player?.prepare()
         player?.playWhenReady = true
     }
+
 
     private fun setupVideoTitle() {
         val url: String? = intent.getStringExtra("url")
@@ -90,6 +109,10 @@ class VideoPlayscreen : AppCompatActivity() {
             qualityButton.setOnClickListener { changeQuality(index) }
             qualityTrackLayout.addView(qualityButton)
         }
+        val audioOnlyButton = layoutInflater.inflate(R.layout.qualitybutton_layout,qualityTrackLayout,false) as Button
+        "Audio-Only".also { audioOnlyButton.text = it }
+        audioOnlyButton.setOnClickListener{audioOnlyButtonPressed() }
+        qualityTrackLayout.addView(audioOnlyButton)
 
         // Create quality dialog
         qualityDialog = AlertDialog.Builder(this)
@@ -102,7 +125,29 @@ class VideoPlayscreen : AppCompatActivity() {
         }
     }
 
+    @OptIn(UnstableApi::class)
+    private fun audioOnlyButtonPressed() {
+
+            val trackSelectionParameters = TrackSelectionParameters.Builder(this)
+                .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, true) // Disable video tracks
+                .build()
+            trackSelector.setParameters(trackSelectionParameters)
+
+
+        qualityDialog.dismiss()
+        player?.play()
+
+        "Quality: AUDIO-ONLY".also { qualityButton.text = it }
+
+    }
+
+
+    @OptIn(UnstableApi::class)
     private fun changeQuality(index: Int) {
+        val trackSelectionParameters = TrackSelectionParameters.Builder(this)
+        .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, false) // Disable video tracks
+        .build()
+        trackSelector.setParameters(trackSelectionParameters)
         val position = player?.currentPosition ?: 0
         player?.setMediaItem(mediaItemList[index])
         player?.prepare()

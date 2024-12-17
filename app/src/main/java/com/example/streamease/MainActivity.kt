@@ -8,12 +8,14 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
+ import androidx.annotation.OptIn
+ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
-import androidx.recyclerview.widget.LinearLayoutManager
+ import androidx.media3.common.util.UnstableApi
+ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.streamease.Models.PageData
+ import com.example.streamease.Models.PageData
 import com.example.streamease.Models.Video
 import com.example.streamease.databinding.ActivityMainBinding
 import jp.wasabeef.blurry.Blurry
@@ -215,6 +217,7 @@ class MainActivity : AppCompatActivity() {
         this@MainActivity.totalRes = response.body()?.total_results!!/perPage
     }
 
+    @OptIn(UnstableApi::class)
     private fun strartVideoScene(position: Int) {
         val intent = Intent(this@MainActivity, VideoPlayscreen::class.java)
         intent.putExtra("url", videolist[position].url)
