@@ -1,6 +1,6 @@
 package com.example.streamease
 
- import android.annotation.SuppressLint
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -8,21 +8,34 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.activity.enableEdgeToEdge
- import androidx.annotation.OptIn
- import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.OptIn
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
- import androidx.media3.common.util.UnstableApi
- import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.TrackSelectionParameters
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.ui.PlayerView
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
- import com.example.streamease.Models.PageData
+import com.example.streamease.Models.PageData
 import com.example.streamease.Models.Video
 import com.example.streamease.databinding.ActivityMainBinding
+import io.github.hyuwah.draggableviewlib.DraggableView
+import io.github.hyuwah.draggableviewlib.setupDraggable
 import jp.wasabeef.blurry.Blurry
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
+
+@UnstableApi
 class MainActivity : AppCompatActivity() {
 
     private val apiKEY: String = "ugpXVoRZqu4YZYA4pIRXwVYP8Mgyn5O3aZBYkTC2Z5CFn7tgZCz4M5ml"
@@ -36,15 +49,18 @@ class MainActivity : AppCompatActivity() {
     private lateinit var loadingPB: ProgressBar
     private lateinit var videolist: List<Video>
 
-
     private lateinit var blurryView: ImageView
     private lateinit var searchContainer: LinearLayout
     private lateinit var videosearch: SearchView
     private lateinit var cancelButton: TextView
     private lateinit var touchInterceptor: View
-    private lateinit var notfoundtext:TextView
-    private var hassearched:Boolean = false
-    private var lastquery:String = ""
+    private lateinit var notfoundtext: TextView
+    private var hassearched: Boolean = false
+    private var lastquery: String = ""
+    private lateinit var someDraggableView: DraggableView<PlayerView>
+    private lateinit var videoPlayerLauncher: ActivityResultLauncher<Intent>
+    private lateinit var player: ExoPlayer
+    private lateinit var trackSelector: DefaultTrackSelector
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,9 +80,27 @@ class MainActivity : AppCompatActivity() {
         linearLayoutManager = LinearLayoutManager(this)
         loadingPB = binding.idPBLoading
         videolist = listOf()
+        binding.logo.setOnClickListener { onLOGOPressed() }
 
-        //setting the searchView Listner
-        videosearch.setOnQueryTextListener(object:SearchView.OnQueryTextListener{
+        // Initialize ExoPlayer
+        trackSelector = DefaultTrackSelector(this)
+        player = ExoPlayer.Builder(this).setTrackSelector(trackSelector).build()
+
+        // Setup floating player (UI)
+        SetupFloatingPlayer()
+
+        // Register activity result launcher
+        videoPlayerLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result: ActivityResult ->
+            Log.d("bkjked", result.resultCode.toString())
+            if (result.resultCode == RESULT_OK && result.data != null) {
+                handleActivityResult(result.data!!)
+            }
+        }
+
+        // Setup SearchView Listener
+        videosearch.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 onSearched(query)
                 toggleSearch()
@@ -76,18 +110,65 @@ class MainActivity : AppCompatActivity() {
             override fun onQueryTextChange(newText: String?): Boolean {
                 return false
             }
-
         })
+
         // Setup search buttons
         binding.searchButton.setOnClickListener { toggleSearch() }
         cancelButton.setOnClickListener { toggleSearch() }
         touchInterceptor.setOnTouchListener { _, _ -> true }
 
-        //fetching popular data and setting up pagination
+        // Fetch popular data and setup pagination
         fetchPopularData(page, totalRes)
         setUpPagination()
+    }
 
+    private fun onLOGOPressed() {
+        page = 1
+        videolist = emptyList()
+        hassearched = false
+        totalRes = Int.MAX_VALUE
+        player.stop()
+        binding.floatingPlayer.visibility = View.GONE
+        fetchPopularData(page, totalRes)
+    }
 
+    private fun SetupFloatingPlayer() {
+        binding.floatingPlayer.visibility = View.GONE
+        binding.floatingPlayer.player = player
+        val but = binding.floatingPlayer.findViewById<ImageButton>(R.id.close)
+        but.setOnClickListener { closeplayer() }
+        but.visibility = View.VISIBLE
+        binding.floatingPlayer.findViewById<LinearLayout>(R.id.Bottom_bar).visibility = View.GONE
+        binding.floatingPlayer.findViewById<ImageButton>(R.id.miniplayer_button).visibility = View.GONE
+        someDraggableView = binding.floatingPlayer.setupDraggable()
+            .setStickyMode(DraggableView.Mode.STICKY_X)
+            .setAnimated(true)
+            .build()
+    }
+
+    private fun closeplayer() {
+        binding.floatingPlayer.visibility = View.GONE
+        player.stop()
+    }
+
+    private fun handleActivityResult(data: Intent) {
+        val videoUrl = data.getStringExtra("videoUrl")
+        val playbackPosition = data.getLongExtra("playbackPosition", 0)
+        val isPlaying = data.getBooleanExtra("isPlaying", false)
+        val isAudionly = data.getBooleanExtra("wasAudioOnly", false)
+
+        // Resume playback in MainActivity's ExoPlayer
+        if (videoUrl != null) {
+            player.setMediaItem(MediaItem.fromUri(videoUrl))
+            player.seekTo(playbackPosition)
+            player.prepare()
+            player.playWhenReady = isPlaying
+            binding.floatingPlayer.visibility = View.VISIBLE
+            val trackSelectionParameters = TrackSelectionParameters.Builder(this)
+                .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, isAudionly) // Disable video tracks
+                .build()
+            trackSelector.setParameters(trackSelectionParameters)
+        }
     }
 
     private fun toggleSearch() {
@@ -108,14 +189,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onSearched(query: String?) {
-        page=1
-        videolist= emptyList()
-        hassearched=true
-        totalRes=Int.MAX_VALUE
+        page = 1
+        videolist = emptyList()
+        hassearched = true
+        totalRes = Int.MAX_VALUE
         if (query != null) {
-            lastquery=query
+            lastquery = query
         }
-        fetchSearchedData(page,totalRes,query)
+        fetchSearchedData(page, totalRes, query)
     }
 
     private fun fetchSearchedData(page: Int, totalpages: Int, query: String?) {
@@ -125,16 +206,17 @@ class MainActivity : AppCompatActivity() {
             return
         }
         if (query != null) {
-            RetrofitClient.instance?.api?.getSearched(apiKEY, page, perPage,query)?.enqueue(object : Callback<PageData> {
-                override fun onResponse(call: Call<PageData>, response: Response<PageData>) {
-                    responseHandle(response)
-                }
+            RetrofitClient.instance?.api?.getSearched(apiKEY, page, perPage, query)
+                ?.enqueue(object : Callback<PageData> {
+                    override fun onResponse(call: Call<PageData>, response: Response<PageData>) {
+                        responseHandle(response)
+                    }
 
-                override fun onFailure(call: Call<PageData>, t: Throwable) {
-                    failureHandle(t)
+                    override fun onFailure(call: Call<PageData>, t: Throwable) {
+                        failureHandle(t)
+                    }
                 }
-            }
-            )
+                )
         }
     }
 
@@ -170,37 +252,39 @@ class MainActivity : AppCompatActivity() {
             if (scrollY == v.getChildAt(0).measuredHeight - v.measuredHeight) {
                 page++
                 loadingPB.visibility = View.VISIBLE
-                if(!hassearched){
-                fetchPopularData( page, totalRes)}
-                else{
-                    fetchSearchedData(page,totalRes,lastquery)
+                if (!hassearched) {
+                    fetchPopularData(page, totalRes)
+                } else {
+                    fetchSearchedData(page, totalRes, lastquery)
                 }
             }
         })
     }
 
-    private fun fetchPopularData( i: Int, tot: Int) {
+    private fun fetchPopularData(i: Int, tot: Int) {
         if (i > tot) {
             Toast.makeText(this, "That's all the data.", Toast.LENGTH_SHORT).show()
             loadingPB.visibility = View.GONE
             return
         }
-        RetrofitClient.instance?.api?.getPopular(apiKEY, i, perPage)?.enqueue(object : Callback<PageData> {
-            override fun onResponse(call: Call<PageData>, response: Response<PageData>) {
-               responseHandle(response)
-            }
+        RetrofitClient.instance?.api?.getPopular(apiKEY, i, perPage)
+            ?.enqueue(object : Callback<PageData> {
+                override fun onResponse(call: Call<PageData>, response: Response<PageData>) {
+                    responseHandle(response)
+                }
 
-            override fun onFailure(call: Call<PageData>, t: Throwable) {
-                failureHandle(t)
-            }
-        })
+                override fun onFailure(call: Call<PageData>, t: Throwable) {
+                    failureHandle(t)
+                }
+            })
     }
+
     fun responseHandle(response: Response<PageData>) {
-        if ((response.body()?.videos?.size ?: 0) == 0){
-            val t=Throwable("no Videos Found")
+        if ((response.body()?.videos?.size ?: 0) == 0) {
+            val t = Throwable("no Videos Found")
             failureHandle(t)
-        }else{
-            notfoundtext.visibility=View.GONE
+        } else {
+            notfoundtext.visibility = View.GONE
         }
         for (vid in response.body()?.videos!!) {
             videolist += vid
@@ -214,7 +298,7 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
-        this@MainActivity.totalRes = response.body()?.total_results!!/perPage
+        this@MainActivity.totalRes = response.body()?.total_results!! / perPage
     }
 
     @OptIn(UnstableApi::class)
@@ -228,19 +312,22 @@ class MainActivity : AppCompatActivity() {
             videolinklist.add(vid.link)
             videoqualitylist.add("${vid.quality} : ${vid.width}X${vid.height}")
         }
-        for(vid in videolist[position].video_pictures){
+        for (vid in videolist[position].video_pictures) {
             pictures.add(vid.picture)
         }
+
         intent.putExtra("Videolinks", videolinklist)
         intent.putExtra("videoquality", videoqualitylist)
         intent.putExtra("pictures", pictures)
-        startActivity(intent)
+        videoPlayerLauncher.launch(intent)
     }
 
     fun failureHandle(t: Throwable) {
         Toast.makeText(this@MainActivity, t.message, Toast.LENGTH_SHORT).show()
-        notfoundtext.text=t.message
-        notfoundtext.visibility=View.VISIBLE
-        loadingPB.visibility=View.GONE
+        notfoundtext.text = t.message
+        notfoundtext.visibility = View.VISIBLE
+        loadingPB.visibility = View.GONE
     }
 }
+
+

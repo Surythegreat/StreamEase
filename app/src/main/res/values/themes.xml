@@ -2,7 +2,8 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.StreamEase" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="android:windowBackground">@color/light_black</item>
+         <item name="colorPrimary">@color/lighter_black</item>
     </style>
 
     <style name="Theme.StreamEase" parent="Base.Theme.StreamEase" />

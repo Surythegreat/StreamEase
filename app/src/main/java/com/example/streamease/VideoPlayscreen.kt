@@ -1,11 +1,13 @@
 package com.example.streamease
 
 
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -38,7 +40,9 @@ class VideoPlayscreen : AppCompatActivity() {
     private val mediaItemList = arrayListOf<MediaItem>()
     private var videoQualities: ArrayList<String>? = null
     private var videoUrls: ArrayList<String>? = null
-    private lateinit var trackSelector:DefaultTrackSelector
+    private var currentUrl: String = ""
+    private lateinit var trackSelector: DefaultTrackSelector
+    private var isAudioOnly=false
 
 
     val Int.dp: Int
@@ -60,12 +64,16 @@ class VideoPlayscreen : AppCompatActivity() {
     private fun setupPlayer() {
         playerView = findViewById(R.id.video_view)
 
+        playerView.findViewById<ImageButton>(R.id.miniplayer_button).setOnClickListener { sendData() }
+
         trackSelector = DefaultTrackSelector(this)
         player = ExoPlayer.Builder(this).setTrackSelector(trackSelector).build()
         playerView.player = player
 
 
-
+//        onBackPressedDispatcher.addCallback(this){
+//            updatecurrent()
+//        }
 
         // Get video URLs and qualities
         videoUrls = intent.getStringArrayListExtra("Videolinks")
@@ -78,13 +86,21 @@ class VideoPlayscreen : AppCompatActivity() {
             mediaItemList.add(mediaItem)
         }
 
-
         // Prepare the player
         player?.setMediaItem(mediaItemList.first())
         player?.prepare()
         player?.playWhenReady = true
     }
 
+     private fun sendData() {
+            val resultIntent = Intent()
+            resultIntent.putExtra("videoUrl", videoUrls?.get(0))
+            resultIntent.putExtra("playbackPosition", player?.currentPosition ?: 0)
+            resultIntent.putExtra("isPlaying", player?.isPlaying ?: false)
+            resultIntent.putExtra("wasAudioOnly",isAudioOnly )
+            setResult(RESULT_OK, resultIntent)
+         finish()
+    }
 
     private fun setupVideoTitle() {
         val url: String? = intent.getStringExtra("url")
@@ -104,14 +120,22 @@ class VideoPlayscreen : AppCompatActivity() {
 
         // Populate quality options
         videoQualities?.forEachIndexed { index, quality ->
-            val qualityButton = layoutInflater.inflate(R.layout.qualitybutton_layout, qualityTrackLayout, false) as Button
+            val qualityButton = layoutInflater.inflate(
+                R.layout.qualitybutton_layout,
+                qualityTrackLayout,
+                false
+            ) as Button
             qualityButton.text = quality
             qualityButton.setOnClickListener { changeQuality(index) }
             qualityTrackLayout.addView(qualityButton)
         }
-        val audioOnlyButton = layoutInflater.inflate(R.layout.qualitybutton_layout,qualityTrackLayout,false) as Button
+        val audioOnlyButton = layoutInflater.inflate(
+            R.layout.qualitybutton_layout,
+            qualityTrackLayout,
+            false
+        ) as Button
         "Audio-Only".also { audioOnlyButton.text = it }
-        audioOnlyButton.setOnClickListener{audioOnlyButtonPressed() }
+        audioOnlyButton.setOnClickListener { audioOnlyButtonPressed() }
         qualityTrackLayout.addView(audioOnlyButton)
 
         // Create quality dialog
@@ -128,11 +152,11 @@ class VideoPlayscreen : AppCompatActivity() {
     @OptIn(UnstableApi::class)
     private fun audioOnlyButtonPressed() {
 
-            val trackSelectionParameters = TrackSelectionParameters.Builder(this)
-                .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, true) // Disable video tracks
-                .build()
-            trackSelector.setParameters(trackSelectionParameters)
-
+        val trackSelectionParameters = TrackSelectionParameters.Builder(this)
+            .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, true) // Disable video tracks
+            .build()
+        trackSelector.setParameters(trackSelectionParameters)
+        isAudioOnly=true
 
         qualityDialog.dismiss()
         player?.play()
@@ -145,15 +169,19 @@ class VideoPlayscreen : AppCompatActivity() {
     @OptIn(UnstableApi::class)
     private fun changeQuality(index: Int) {
         val trackSelectionParameters = TrackSelectionParameters.Builder(this)
-        .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, false) // Disable video tracks
-        .build()
+            .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, false) // Disable video tracks
+            .build()
         trackSelector.setParameters(trackSelectionParameters)
+        isAudioOnly=false
+
         val position = player?.currentPosition ?: 0
         player?.setMediaItem(mediaItemList[index])
         player?.prepare()
         player?.seekTo(position)
         player?.playWhenReady = true
         qualityDialog.dismiss()
+        currentUrl = videoUrls?.get(index) ?: ""
+
 
         "Quality: ${videoQualities?.get(index) ?: "N/A"}".also { qualityButton.text = it }
     }
@@ -174,10 +202,15 @@ class VideoPlayscreen : AppCompatActivity() {
         }
     }
 
-    private fun enterFullscreen(controller: WindowInsetsControllerCompat, toolbar: CollapsingToolbarLayout, button: ImageView) {
+    private fun enterFullscreen(
+        controller: WindowInsetsControllerCompat,
+        toolbar: CollapsingToolbarLayout,
+        button: ImageView
+    ) {
         button.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_fullscreen_close))
         controller.hide(WindowInsetsCompat.Type.systemBars())
-        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        controller.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         supportActionBar?.hide()
         toolbar.layoutParams = (toolbar.layoutParams as AppBarLayout.LayoutParams).apply {
             scrollFlags = 0
@@ -191,15 +224,19 @@ class VideoPlayscreen : AppCompatActivity() {
         }
 
 
-
     }
 
-    private fun exitFullscreen(controller: WindowInsetsControllerCompat, toolbar: CollapsingToolbarLayout, button: ImageView) {
+    private fun exitFullscreen(
+        controller: WindowInsetsControllerCompat,
+        toolbar: CollapsingToolbarLayout,
+        button: ImageView
+    ) {
         button.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_fullscreen_open))
         controller.show(WindowInsetsCompat.Type.systemBars())
         supportActionBar?.show()
         toolbar.layoutParams = (toolbar.layoutParams as AppBarLayout.LayoutParams).apply {
-            scrollFlags = AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or AppBarLayout.LayoutParams.SCROLL_FLAG_EXIT_UNTIL_COLLAPSED
+            scrollFlags =
+                AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or AppBarLayout.LayoutParams.SCROLL_FLAG_EXIT_UNTIL_COLLAPSED
         }
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         playerView.layoutParams = playerView.layoutParams.apply {
@@ -222,8 +259,10 @@ class VideoPlayscreen : AppCompatActivity() {
         }
     }
 
+
     override fun onDestroy() {
         super.onDestroy()
+
         player?.release()
         player = null
     }

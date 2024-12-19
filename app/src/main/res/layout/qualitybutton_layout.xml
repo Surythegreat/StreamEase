@@ -2,6 +2,7 @@
 <Button xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/quality_button_track"
     android:layout_width="match_parent"
+    android:textColor="@color/dark_white"
     android:layout_height="wrap_content"
     android:backgroundTint="@color/lighter_black"
     android:fontFamily="@font/roboto_medium"

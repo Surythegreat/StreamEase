@@ -7,4 +7,7 @@
     <dimen name="smal_title_Size">16sp</dimen>
     <dimen name="smaller_pading">4dp</dimen>
     <dimen name="general_margin">10dp</dimen>
+    <dimen name="playerinPviewHight">200dp</dimen>
+    <dimen name="playerinPViewwidth">300dp</dimen>
+    <dimen name="small_text_size">12sp</dimen>
 </resources>

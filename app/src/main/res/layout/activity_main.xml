@@ -10,6 +10,8 @@
         android:background="@color/light_black"
         tools:context=".MainActivity">
 
+
+
         <LinearLayout
             android:id="@+id/main"
             android:layout_width="match_parent"
@@ -23,6 +25,7 @@
                 <ImageView
                     android:layout_width="223dp"
                     android:layout_height="54dp"
+                    android:id="@+id/logo"
                     android:padding="@dimen/smaller_pading"
                     android:layout_margin="@dimen/general_margin"
                     android:layout_gravity="center"
@@ -93,6 +96,24 @@
             android:background="#00000000"
             android:visibility="gone" />
 
+
+
+            <androidx.media3.ui.PlayerView
+                android:id="@+id/floating_player"
+                android:layout_width="@dimen/playerinPViewwidth"
+                android:layout_height="@dimen/playerinPviewHight"
+                app:layout_collapseMode="parallax"
+                app:resize_mode="fit"
+                android:visibility="visible"
+                app:auto_show="true"
+                android:background="@color/lighter_black"
+                app:controller_layout_id="@layout/exo_player_controller"
+                app:show_shuffle_button="true"
+                app:repeat_toggle_modes="none"
+                app:surface_type="surface_view"
+                app:use_controller="true" />
+
+
         <!-- Search view should be above the blur view -->
         <LinearLayout
             android:id="@+id/searchContainer"
@@ -125,6 +146,7 @@
                 android:textColor="@color/dark_white"
                 android:textColorLink="@color/light_black"
                 app:strokeColor="@color/light_black" />
+
         </LinearLayout>
     </FrameLayout>
 </layout>

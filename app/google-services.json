@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "864081991012",
+    "project_id": "streamease-3e10d",
+    "storage_bucket": "streamease-3e10d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:864081991012:android:3a48e3fe47bc2b6ae21671",
+        "android_client_info": {
+          "package_name": "com.example.firebase"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtc7zvG2Cb_1x1NbT3GUchM2921R1voGk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:864081991012:android:0bcfdf270569be5be21671",
+        "android_client_info": {
+          "package_name": "com.example.streamease"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtc7zvG2Cb_1x1NbT3GUchM2921R1voGk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
