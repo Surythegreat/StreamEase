@@ -1,5 +1,6 @@
 package com.example.streamease
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
@@ -7,15 +8,20 @@ import android.text.TextWatcher
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.streamease.databinding.ActivitySignupBinding
+import com.google.firebase.auth.FirebaseAuth
 
 class Signup : AppCompatActivity() {
 
     private lateinit var binding: ActivitySignupBinding
+    private lateinit var firebaseauth:FirebaseAuth
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySignupBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        firebaseauth=FirebaseAuth.getInstance()
 
         // Password Strength Checker
         binding.signupPassword.addTextChangedListener(object : TextWatcher {
@@ -51,7 +57,15 @@ class Signup : AppCompatActivity() {
                 Toast.makeText(this, "Password is too weak", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            firebaseauth.createUserWithEmailAndPassword(email,password).addOnCompleteListener{
+                if(it.isSuccessful){
+                    val intent = Intent(this,login::class.java)
+                    startActivity(intent)
+                }else{
+                    Toast.makeText(this, it.exception.toString(), Toast.LENGTH_SHORT).show()
 
+                }
+            }
             // Perform sign-up logic here
             Toast.makeText(this, "Sign-Up Successful!", Toast.LENGTH_SHORT).show()
         }

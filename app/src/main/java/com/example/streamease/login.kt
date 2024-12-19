@@ -6,10 +6,11 @@ import android.text.TextUtils
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.streamease.databinding.ActivityLoginBinding
+import com.google.firebase.auth.FirebaseAuth
 
 class login : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
-    private lateinit var databaseHelper: DatabaseHelper
+    private lateinit var firebaseAuth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -17,21 +18,22 @@ class login : AppCompatActivity() {
         setContentView(binding.root)
 
         // Initialize the database helper
-        databaseHelper = DatabaseHelper(this)
-
+        firebaseAuth=FirebaseAuth.getInstance()
         // Set up the login button
         binding.loginButton.setOnClickListener {
             val email = binding.loginEmail.text.toString().trim()
             val password = binding.loginPassword.text.toString().trim()
 
             if (validateInput(email, password)) {
-                if (databaseHelper.checkEmailPassword(email, password)) {
-                    Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show()
-                    val intent = Intent(this, MainActivity::class.java)
-                    startActivity(intent)
-                } else {
-                    // Show a detailed error for invalid credentials
-                    binding.loginPassword.error = "Invalid email or password"
+                firebaseAuth.signInWithEmailAndPassword(email,password).addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show()
+                        val intent = Intent(this, MainActivity::class.java)
+                        startActivity(intent)
+                    } else {
+                        // Show a detailed error for invalid credentials
+                        binding.loginPassword.error = "Invalid email or password"
+                    }
                 }
             }
         }
@@ -42,11 +44,7 @@ class login : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // Forgot Password functionality (optional placeholder)
-        binding.forgotPassword.setOnClickListener {
-            Toast.makeText(this, "Forgot Password functionality coming soon!", Toast.LENGTH_SHORT).show()
-            // Future Implementation: Navigate to ResetPassword activity
-        }
+
     }
 
     /**
@@ -74,5 +72,13 @@ class login : AppCompatActivity() {
         }
 
         return isValid
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (firebaseAuth.currentUser!=null){
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+        }
     }
 }
