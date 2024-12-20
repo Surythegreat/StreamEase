@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_myAcc"
+        android:icon="@drawable/myaccountview"/>
+    <item
+        android:id="@+id/navigation_home"
+        android:icon="@drawable/mainview"
+         />
+
+    <item
+        android:id="@+id/navigation_videoplay"
+        android:icon="@drawable/videoplayview"/>
+
+    <item
+    android:id="@+id/navigation_hisNsavV"
+    android:icon="@drawable/savedvideoandhistoryview" />
+
+</menu>

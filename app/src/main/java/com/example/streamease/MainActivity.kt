@@ -27,6 +27,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.streamease.Models.PageData
 import com.example.streamease.Models.Video
 import com.example.streamease.databinding.ActivityMainBinding
+import com.example.streamease.helper.RetrofitClient
+import com.example.streamease.helper.myAdapter
 import io.github.hyuwah.draggableviewlib.DraggableView
 import io.github.hyuwah.draggableviewlib.setupDraggable
 import jp.wasabeef.blurry.Blurry

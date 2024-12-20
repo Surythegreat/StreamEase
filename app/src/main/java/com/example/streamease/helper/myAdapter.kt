@@ -1,4 +1,4 @@
-package com.example.streamease
+package com.example.streamease.helper
 
 import android.app.Activity
 import android.view.LayoutInflater
@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.bumptech.glide.Glide
 import com.example.streamease.Models.Video
+import com.example.streamease.R
 import com.google.android.material.imageview.ShapeableImageView
 
 
@@ -37,12 +38,12 @@ class myAdapter(val context:Activity, val arrayList: List<Video>?):
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): myAdapter.MyviewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyviewHolder {
         val card = LayoutInflater.from(context).inflate(R.layout.eachvideothumb,parent,false)
         return MyviewHolder(card,myListner)
     }
 
-    override fun onBindViewHolder(holder: myAdapter.MyviewHolder, position: Int) {
+    override fun onBindViewHolder(holder: MyviewHolder, position: Int) {
         val s = arrayList?.get(position)?.url?.substring(29)?.replace("-"," ")
         if (s != null) {
             holder.titletex.text = buildString {

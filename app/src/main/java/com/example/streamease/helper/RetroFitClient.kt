@@ -1,4 +1,4 @@
-package com.example.streamease
+package com.example.streamease.helper
 
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

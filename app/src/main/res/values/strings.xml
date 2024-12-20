@@ -18,4 +18,5 @@
     <string name="sign_up">Sign Up</string>
     <string name="confirm_password">Confirm Password</string>
     <string name="password_strength">Password strength</string>
+    <string name="title_activity_main2">MainActivity2</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.example.streamease
+package com.example.streamease.helper
 
 import com.example.streamease.Models.PageData
 import retrofit2.Call

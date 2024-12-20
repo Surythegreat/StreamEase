@@ -1,4 +1,4 @@
-package com.example.streamease
+package com.example.streamease.helper
 
 import android.content.ContentValues
 import android.content.Context
