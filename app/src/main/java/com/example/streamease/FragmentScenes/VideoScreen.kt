@@ -1,11 +1,10 @@
 package com.example.streamease.FragmentScenes
 
-import android.content.Intent
+import android.annotation.SuppressLint
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,10 +13,8 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.activity.enableEdgeToEdge
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -35,12 +32,13 @@ import com.example.streamease.R
 import com.example.streamease.databinding.FragmentVideoScreenBinding
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
-import com.google.android.material.bottomnavigation.BottomNavigationView
 
 
 @UnstableApi
 class VideoScreen : scenes() {
 
+    private var Min_quality: String? = null
+    private var Min_url: String? = null
     private lateinit var binding: FragmentVideoScreenBinding
     private var player: ExoPlayer? = null
     private lateinit var playerView: PlayerView
@@ -68,6 +66,7 @@ class VideoScreen : scenes() {
         return binding.root
     }
 
+    @SuppressLint("InflateParams")
     override fun onStart() {
         super.onStart()
 
@@ -77,9 +76,11 @@ class VideoScreen : scenes() {
         qualityButton = playerView.findViewById(R.id.quality_button)
         titleTextView = binding.titleofplayer
         trackSelector = DefaultTrackSelector(activity as MainActivity2)
-        player = ExoPlayer.Builder(activity as MainActivity2).setTrackSelector(trackSelector).build()
         qualityLayout = layoutInflater.inflate(R.layout.qualitytrack, null)
         qualityTrackLayout= qualityLayout.findViewById(R.id.quality_track)
+        playerView.findViewById<ImageButton>(R.id.miniplayer_button)
+            .setOnClickListener { sendData() }
+
         playerView.player = player
         setupFullscreenHandler()
 
@@ -92,10 +93,11 @@ class VideoScreen : scenes() {
     }
 
         @OptIn(UnstableApi::class)
-        private fun setupPlayer() {
+        fun setupPlayer() {
 
-//            playerView.findViewById<ImageButton>(R.id.miniplayer_button).setOnClickListener { sendData() }
 
+            player =
+                ExoPlayer.Builder(activity as MainActivity2).setTrackSelector(trackSelector).build()
 
             // Get video URLs and qualities
             videoUrls = arguments?.getStringArrayList(MainActivity2.KEY_VIDEO_LINKS)
@@ -106,22 +108,28 @@ class VideoScreen : scenes() {
                 Log.e("VideoScreen", "No video URLs provided")
                 return // Exit the method early if no videos are available
             }
-
+            Min_url = arguments?.getString(MainActivity2.KEY_MIN_video)
+            val uri = Uri.parse(Min_url)
+            val mediaItem = MediaItem.fromUri(uri)
 
             // Populate media items
             videoUrls?.forEachIndexed { index, url ->
+                if (Min_url == url) {
+                    Min_quality = videoQualities?.get(index)
+                }
                 val uri = Uri.parse(url)
                 val mediaItem = MediaItem.fromUri(uri)
                 mediaItemList.add(mediaItem)
             }
+            playerView.player = player
 
             // Prepare the player
-            player?.setMediaItem(mediaItemList.first())
+            player?.setMediaItem(mediaItem)
             player?.prepare()
             player?.playWhenReady = true
         }
 
-//        private fun sendData() {
+    private fun sendData() {
 //            val resultIntent = Intent()
 //            resultIntent.putExtra("videoUrl", videoUrls?.get(0))
 //            resultIntent.putExtra("playbackPosition", player?.currentPosition ?: 0)
@@ -129,7 +137,19 @@ class VideoScreen : scenes() {
 //            resultIntent.putExtra("wasAudioOnly",isAudioOnly )
 //            setResult(RESULT_OK, resultIntent)
 //            finish()
-//        }
+        player?.let {
+            Min_url.let { it1 ->
+                if (it1 != null) {
+                    (activity as MainActivity2).onPlayerLaunch(
+                        it1,
+                        it.currentPosition, player!!.isPlaying, isAudioOnly
+                    )
+                }
+            }
+        }
+        playerView.player = null
+        player?.release()
+    }
 
         private fun setupVideoTitle() {
             val url: String? = arguments?.getString("url")
@@ -142,8 +162,8 @@ class VideoScreen : scenes() {
 
         private fun setupQualitySelector() {
 
-            "Quality: ${videoQualities?.firstOrNull() ?: "N/A"}".also { qualityButton.text = it }
-
+            "Quality: ${Min_quality}".also { qualityButton.text = it }
+            qualityTrackLayout.removeAllViews()
 
 
             // Populate quality options
@@ -277,6 +297,7 @@ class VideoScreen : scenes() {
 
         private fun setupPreviewImages() {
             val photosLayout: LinearLayout = binding.photos
+            photosLayout.removeAllViews()
             val pictures = arguments?.getStringArrayList(MainActivity2.KEY_PICTURES)
 
             pictures?.forEach { picture ->

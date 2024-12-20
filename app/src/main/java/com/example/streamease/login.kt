@@ -4,7 +4,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.TextUtils
 import android.widget.Toast
+import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
+import androidx.media3.common.util.UnstableApi
 import com.example.streamease.databinding.ActivityLoginBinding
 import com.google.firebase.auth.FirebaseAuth
 
@@ -12,6 +14,7 @@ class login : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
     private lateinit var firebaseAuth: FirebaseAuth
 
+    @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
@@ -28,7 +31,7 @@ class login : AppCompatActivity() {
                 firebaseAuth.signInWithEmailAndPassword(email,password).addOnCompleteListener {
                     if (it.isSuccessful) {
                         Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show()
-                        val intent = Intent(this, MainActivity::class.java)
+                        val intent = Intent(this, MainActivity2::class.java)
                         startActivity(intent)
                     } else {
                         // Show a detailed error for invalid credentials
@@ -74,10 +77,11 @@ class login : AppCompatActivity() {
         return isValid
     }
 
+    @OptIn(UnstableApi::class)
     override fun onStart() {
         super.onStart()
         if (firebaseAuth.currentUser!=null){
-            val intent = Intent(this, MainActivity::class.java)
+            val intent = Intent(this, MainActivity2::class.java)
             startActivity(intent)
         }
     }

@@ -1,10 +1,9 @@
 [versions]
 agp = "8.5.2"
 blurry = "4.0.1"
-draggableview = "1.0.0"
 draggableViewVersion = "1.1.0"
 glide = "4.14.2"
-kotlin = "1.9.0"
+kotlin = "1.9.24"
 coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -14,14 +13,14 @@ loggingInterceptor = "4.12.0"
 material = "1.12.0"
 activity = "1.9.3"
 constraintlayout = "2.2.0"
-media3Exoplayer = "1.4.0"
+media3Exoplayer = "1.4.1"
 retrofit = "2.11.0"
 googleGmsGoogleServices = "4.4.2"
 firebaseAuth = "23.1.0"
 lifecycleLivedataKtx = "2.8.7"
 lifecycleViewmodelKtx = "2.8.7"
-navigationFragmentKtx = "2.8.4"
-navigationUiKtx = "2.8.4"
+navigationFragmentKtx = "2.8.5"
+navigationUiKtx = "2.8.5"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -31,7 +30,6 @@ androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "medi
 blurry = { module = "jp.wasabeef:blurry", version.ref = "blurry" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
 draggable-view = { module = "com.axzae:draggable-view", version.ref = "draggableViewVersion" }
-draggableview = { module = "com.github.hyuwah:DraggableView", version.ref = "draggableview" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

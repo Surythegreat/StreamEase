@@ -87,7 +87,7 @@ class Signup : AppCompatActivity() {
                 "Strong"
             }
         }
-        binding.passwordStrength.text = "Password Strength: $strengthText"
+        "Password Strength: $strengthText".also { binding.passwordStrength.text = it }
     }
 
     // Check if the password is strong

@@ -21,11 +21,7 @@
             android:configChanges="orientation|screenSize"
             android:windowSoftInputMode="adjustPan"
             android:label="@string/title_activity_main2" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".Signup"
@@ -35,17 +31,13 @@
         <activity
             android:name=".login"
             android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
-        <activity
-            android:name=".VideoPlayscreen"
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:exported="false" />
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
 
-        </activity>
 
         <meta-data
             android:name="preloaded_fonts"
