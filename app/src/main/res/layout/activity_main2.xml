@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 <LinearLayout
-    android:id="@+id/container"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:orientation="vertical"
     android:layout_height="match_parent">
@@ -59,8 +59,9 @@
         android:id="@+id/blurryView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
-        android:scaleType="centerCrop" />
+        android:scaleType="centerCrop"
+        android:visibility="invisible" />
+
 
     <!-- Touch interceptor overlay -->
     <View

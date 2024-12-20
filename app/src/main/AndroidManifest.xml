@@ -19,6 +19,7 @@
             android:name=".MainActivity2"
             android:exported="true"
             android:configChanges="orientation|screenSize"
+            android:windowSoftInputMode="adjustPan"
             android:label="@string/title_activity_main2" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

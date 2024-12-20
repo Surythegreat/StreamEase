@@ -37,7 +37,7 @@ class MainScene : scenes() {
     private var totalRes: Int = Int.MAX_VALUE
     private lateinit var notfoundtext: TextView
     private lateinit var loadingPB: ProgressBar
-    private val videolist: MutableList<Video> = mutableListOf()
+    private var videolist: MutableList<Video> = mutableListOf()
     private lateinit var recycleV: RecyclerView
     private lateinit var nestedScrollView: NestedScrollView
     private lateinit var mainActivity: MainActivity2
@@ -67,7 +67,12 @@ class MainScene : scenes() {
         return binding.root
     }
 
-
+    fun Reset(query: String? = null){
+        page = 1
+        videolist = mutableListOf()
+        totalRes = Int.MAX_VALUE
+        fetchData(page, totalRes,query)
+    }
 
     fun responseHandle(response: Response<PageData>) {
         if ((response.body()?.videos?.size ?: 0) == 0) {
