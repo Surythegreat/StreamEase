@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.storage.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -67,6 +68,7 @@ dependencies {
 
     implementation(libs.logging.interceptor)
     implementation (libs.glide)
+
 //    implementation ("com.google.android.exoplayer:exoplayer-core:2.19.1")
 //    implementation ("com.google.android.exoplayer:exoplayer-ui:2.19.1")
     implementation (libs.androidx.media3.exoplayer)

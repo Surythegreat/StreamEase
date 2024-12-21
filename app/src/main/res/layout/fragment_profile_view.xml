@@ -2,7 +2,8 @@
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_height="match_parent" android:layout_width="match_parent">
+    android:layout_height="match_parent"
+    android:layout_width="match_parent">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -12,53 +13,40 @@
         android:padding="20dp"
         tools:context=".UserProfile">
 
-        <!-- User Photo -->
-        <ImageView
-            android:id="@+id/user_photo"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:layout_gravity="center"
-            android:layout_marginBottom="20dp"
-            android:background="@drawable/circle_background"
-            android:contentDescription="@string/user_photo"
-            android:src="@drawable/ic_launcher_background"
-            android:scaleType="centerCrop" />
-
         <!-- User Name -->
         <TextView
-            android:id="@+id/user_name"
+            android:id="@+id/user_nameN"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
             android:fontFamily="@font/roboto_medium"
-
             android:gravity="center"
             android:text="@string/default_name"
             android:textColor="@color/light_black"
-            android:textSize="18sp"
+            android:textSize="32sp"
             android:textStyle="bold" />
 
         <!-- User Place -->
         <TextView
-            android:id="@+id/user_place"
+            android:id="@+id/user_placeN"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
             android:text="@string/default_place"
             android:textColor="@color/lighter_black"
-            android:textSize="16sp"
+            android:textSize="28sp"
             android:fontFamily="@font/roboto_medium"
             android:gravity="center" />
 
         <!-- User Branch -->
         <TextView
-            android:id="@+id/user_branch"
+            android:id="@+id/user_branchN"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
             android:text="@string/default_branch"
             android:textColor="@color/lighter_black"
-            android:textSize="16sp"
+            android:textSize="28sp"
             android:fontFamily="@font/roboto_medium"
             android:gravity="center" />
 
