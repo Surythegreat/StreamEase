@@ -12,6 +12,7 @@ import android.widget.SearchView
 import android.widget.TextView
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.TrackSelectionParameters
@@ -20,18 +21,29 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.PlayerView
 import com.example.streamease.FragmentScenes.MainScene
+import com.example.streamease.FragmentScenes.SavedVideos
 import com.example.streamease.FragmentScenes.VideoScreen
 import com.example.streamease.FragmentScenes.profileView
 import com.example.streamease.FragmentScenes.scenes
 import com.example.streamease.Models.Video
 import com.example.streamease.databinding.ActivityMain2Binding
+import com.example.streamease.helper.RetrofitClient
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.firestore
 import io.github.hyuwah.draggableviewlib.DraggableView
 import io.github.hyuwah.draggableviewlib.setupDraggable
 import jp.wasabeef.blurry.Blurry
+import kotlinx.coroutines.launch
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.awaitResponse
 
 @UnstableApi
 class MainActivity2 : AppCompatActivity() {
+    val apiKEY: String = "ugpXVoRZqu4YZYA4pIRXwVYP8Mgyn5O3aZBYkTC2Z5CFn7tgZCz4M5ml"
 
     private lateinit var binding: ActivityMain2Binding
     private lateinit var nav: BottomNavigationView
@@ -43,6 +55,7 @@ class MainActivity2 : AppCompatActivity() {
     private val mainScene = MainScene()       // Home fragment
     private val videoScreen = VideoScreen() // Video screen fragment
     private val profileScene = profileView() // Video screen fragment
+    private val SavedScene = SavedVideos() // Video screen fragment
     private var activeFragment: scenes = mainScene
     private lateinit var searchContainer: LinearLayout
     private lateinit var videosearch: SearchView
@@ -52,7 +65,11 @@ class MainActivity2 : AppCompatActivity() {
     private lateinit var someDraggableView: DraggableView<PlayerView>
     private lateinit var player: ExoPlayer
     private lateinit var trackSelector: DefaultTrackSelector
+    lateinit var Savedvideos:MutableList<Video>
+    private lateinit var currentvideo:Video
 
+    val userid = FirebaseAuth.getInstance().currentUser?.uid
+    var db = Firebase.firestore
 
     @SuppressLint("ClickableViewAccessibility")
     @OptIn(UnstableApi::class)
@@ -67,7 +84,7 @@ class MainActivity2 : AppCompatActivity() {
         cancelButton = binding.cancelButton
         touchInterceptor = binding.touchInterceptor
         blurryView = binding.blurryView
-
+        Savedvideos = mutableListOf()
         // Initialize ExoPlayer
         trackSelector = DefaultTrackSelector(this)
         player = ExoPlayer.Builder(this).setTrackSelector(trackSelector).build()
@@ -97,6 +114,9 @@ class MainActivity2 : AppCompatActivity() {
                 R.id.navigation_myAcc -> {
                     showFragment(profileScene)
                 }
+                R.id.navigation_hisNsavV -> {
+                    showFragment(SavedScene)
+                }
             }
             true
         }
@@ -114,7 +134,67 @@ class MainActivity2 : AppCompatActivity() {
         binding.searchButton.setOnClickListener { toggleSearch() }
         cancelButton.setOnClickListener { toggleSearch() }
         touchInterceptor.setOnTouchListener { _, _ -> true }
+
+        fetchVideos()
     }
+
+    private fun fetchVideos() {
+
+        if (userid != null) {
+            db.collection("User").document(userid).collection("SAVED").get()
+                .addOnSuccessListener { documents ->
+                    if (!documents.isEmpty) {
+                            for (document in documents) {
+                                val videoId = document.getLong("videoId")?.toInt()
+                                if (videoId != null) {
+                                    lifecycleScope.launch {
+                                        val video = getVideoById(videoId)
+                                        if (video != null) {
+                                            Log.d("MainActivity", "Fetched video: ${video.id}")
+                                            Savedvideos+=video
+                                        }
+
+                                    }
+                                }
+                            }
+
+                    }
+                }
+        }
+    }
+
+    private suspend fun getVideoById(videoId: Int): Video? {
+        Log.d("getVideoById", "Fetching video with ID: $videoId")
+
+
+        return try {
+            val res = RetrofitClient.instance?.api?.getVideo(apiKEY, videoId)?.awaitResponse()
+            if(res!=null && res.isSuccessful){
+                res.body()
+            }else {
+                Log.e("getVideoById", "Failed with response code: ${res?.code()}")
+                null
+            }
+//                override fun onResponse(call: Call<Video>, response: Response<Video>) {
+//                    if (response.isSuccessful && response.body() != null) {
+//                        video = response.body()
+//                        Log.d("getVideoById", "Video fetched successfully: ${video?.id}")
+//                    } else {
+//                        Log.e("getVideoById", "Failed with response code: ${response.code()}, message: ${response.message()}")
+//                    }
+//                }
+//
+//                override fun onFailure(call: Call<Video>, t: Throwable) {
+//                    Log.e("getVideoById", "API call failed: ${t.message}", t)
+//                }
+//            })
+        } catch (e: Exception) {
+            Log.e("getVideoById", "Exception while fetching video: ${e.message}", e)
+            null
+        }
+
+    }
+
 
     private fun onLOGOPressed() {
 
@@ -244,11 +324,15 @@ class MainActivity2 : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
             .add(R.id.Replacable_frame, profileScene, "ProfileScene")
             .commit()
+        supportFragmentManager.beginTransaction()
+            .add(R.id.Replacable_frame, SavedScene, "SavedVideoScene")
+            .commit()
 
         supportFragmentManager.beginTransaction()
             .add(R.id.Replacable_frame, mainScene, "MainScene")
             .hide(videoScreen)
             .hide(profileScene)
+            .hide(SavedScene)
             .commit()
          // MainScene is the default fragment
 
@@ -285,10 +369,26 @@ class MainActivity2 : AppCompatActivity() {
         videoScreen.arguments = bundle
         showFragment(videoScreen)
         nav.selectedItemId = R.id.navigation_videoplay
+        currentvideo=video
 
         nav.menu.findItem(R.id.navigation_videoplay).isEnabled = true
     }
+    fun SaveCurrentVideo(){
+        val videoId = currentvideo.id // Assuming `id` is an Int
 
+        // Save the video ID as an Int in Firebase
+        val videoData = hashMapOf("videoId" to videoId)
+        db.collection("User").document(userid!!).collection("SAVED").document(videoId.toString())
+            .set(videoData)
+            .addOnSuccessListener {
+                Log.d("MainActivity", "Video saved to Firebase successfully!")
+                // Add the video to the local Savedvideos list
+                Savedvideos.add(currentvideo)
+            }
+            .addOnFailureListener { exception ->
+                Log.e("MainActivity", "Error saving video: ", exception)
+            }
+    }
     private fun showFragment(fragment: scenes) {
         if (fragment == activeFragment) return
 

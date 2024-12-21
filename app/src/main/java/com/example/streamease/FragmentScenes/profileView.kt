@@ -29,14 +29,14 @@ class profileView : scenes() {
     private var namet = ""
     private var placet = ""
     private var brancht = ""
+    private lateinit var mainActivity2: MainActivity2;
 
-    val userid = FirebaseAuth.getInstance().currentUser?.uid
-    private var db = Firebase.firestore
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        mainActivity2=activity as MainActivity2
         binding = FragmentProfileViewBinding.inflate(inflater, container, false)
         SetupProfileEditDialog()
         UpdateLocalData()
@@ -73,8 +73,8 @@ class profileView : scenes() {
             "Place" to placet,
             "Branch" to brancht
         )
-        if (userid != null) {
-            db.collection("User").document(userid).set(usermap)
+        if (mainActivity2.userid != null) {
+            mainActivity2.db.collection("User").document(mainActivity2.userid!!).set(usermap)
                 .addOnSuccessListener {
                     profileeditDialog.dismiss()
                     UpdateLocalData()
@@ -86,8 +86,8 @@ class profileView : scenes() {
     }
 
     private fun UpdateLocalData() {
-        if (userid != null) {
-            db.collection("User").document(userid).get()
+        if (mainActivity2.userid != null) {
+            mainActivity2.db.collection("User").document(mainActivity2.userid!!).get()
                 .addOnSuccessListener {
                     if (it != null) {
                         namet = it.data?.get("Name")?.toString().toString()

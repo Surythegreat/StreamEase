@@ -86,7 +86,7 @@ class VideoScreen : scenes() {
         qualityTrackLayout= qualityLayout.findViewById(R.id.quality_track)
         playerView.findViewById<ImageButton>(R.id.miniplayer_button)
             .setOnClickListener { sendData() }
-
+        binding.Save.setOnClickListener { (activity as MainActivity2 ).SaveCurrentVideo() }
         playerView.player = player
         setupFullscreenHandler()
 

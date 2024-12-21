@@ -27,7 +27,6 @@ import retrofit2.Response
 @UnstableApi
 class MainScene : scenes() {
 
-    private val apiKEY: String = "ugpXVoRZqu4YZYA4pIRXwVYP8Mgyn5O3aZBYkTC2Z5CFn7tgZCz4M5ml"
 
     private lateinit var binding: FragmentMainSceneBinding
     private var page: Int = 1
@@ -104,9 +103,9 @@ class MainScene : scenes() {
         }
 
         val call = if (query == null) {
-            RetrofitClient.instance?.api?.getPopular(apiKEY, page, perPage)
+            RetrofitClient.instance?.api?.getPopular(mainActivity.apiKEY, page, perPage)
         } else {
-            RetrofitClient.instance?.api?.getSearched(apiKEY, page, perPage, query)
+            RetrofitClient.instance?.api?.getSearched(mainActivity.apiKEY, page, perPage, query)
         }
 
         call?.enqueue(object : Callback<PageData> {
