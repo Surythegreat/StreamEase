@@ -1,7 +1,9 @@
 package com.example.streamease.FragmentScenes
 
 import android.annotation.SuppressLint
+import android.app.ActionBar.LayoutParams
 import android.content.pm.ActivityInfo
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -53,6 +55,7 @@ class VideoScreen : scenes() {
     private lateinit var titleTextView:TextView
     private lateinit var qualityTrackLayout:LinearLayout
     private lateinit var  qualityLayout:View
+    private lateinit var photosLayout: LinearLayout
     val Int.dp: Int
         get() = (this * resources.displayMetrics.density).toInt()
 
@@ -71,11 +74,14 @@ class VideoScreen : scenes() {
         super.onStart()
 
         // Inflate the layout for this fragment
-
+        photosLayout = binding.photos
         playerView = binding.videoView
         qualityButton = playerView.findViewById(R.id.quality_button)
         titleTextView = binding.titleofplayer
         trackSelector = DefaultTrackSelector(activity as MainActivity2)
+        player =
+            ExoPlayer.Builder(activity as MainActivity2).setTrackSelector(trackSelector).build()
+
         qualityLayout = layoutInflater.inflate(R.layout.qualitytrack, null)
         qualityTrackLayout= qualityLayout.findViewById(R.id.quality_track)
         playerView.findViewById<ImageButton>(R.id.miniplayer_button)
@@ -96,8 +102,6 @@ class VideoScreen : scenes() {
         fun setupPlayer() {
 
 
-            player =
-                ExoPlayer.Builder(activity as MainActivity2).setTrackSelector(trackSelector).build()
 
             // Get video URLs and qualities
             videoUrls = arguments?.getStringArrayList(MainActivity2.KEY_VIDEO_LINKS)
@@ -130,13 +134,6 @@ class VideoScreen : scenes() {
         }
 
     private fun sendData() {
-//            val resultIntent = Intent()
-//            resultIntent.putExtra("videoUrl", videoUrls?.get(0))
-//            resultIntent.putExtra("playbackPosition", player?.currentPosition ?: 0)
-//            resultIntent.putExtra("isPlaying", player?.isPlaying ?: false)
-//            resultIntent.putExtra("wasAudioOnly",isAudioOnly )
-//            setResult(RESULT_OK, resultIntent)
-//            finish()
         player?.let {
             Min_url.let { it1 ->
                 if (it1 != null) {
@@ -147,8 +144,14 @@ class VideoScreen : scenes() {
                 }
             }
         }
+        player?.pause()
         playerView.player = null
-        player?.release()
+    }
+
+    override fun onMovedFrom() {
+        super.onMovedFrom()
+        player?.pause()
+        playerView.player = null
     }
 
         private fun setupVideoTitle() {
@@ -296,15 +299,16 @@ class VideoScreen : scenes() {
         }
 
         private fun setupPreviewImages() {
-            val photosLayout: LinearLayout = binding.photos
+
             photosLayout.removeAllViews()
             val pictures = arguments?.getStringArrayList(MainActivity2.KEY_PICTURES)
 
             pictures?.forEach { picture ->
                 val imageView = ImageView(activity).apply {
                     Glide.with(this).load(picture).into(this)
-                    layoutParams = LinearLayout.LayoutParams(150.dp, 150.dp).apply {
-                        setMargins(10.dp, 3.dp, 10.dp, 3.dp)
+                    background= ColorDrawable(resources.getColor(R.color.lighter_black,null))
+                    layoutParams = LinearLayout.LayoutParams( 150.dp, LayoutParams.WRAP_CONTENT).apply {
+                        setPadding(10.dp,0,10.dp,0)
                     }
                 }
                 photosLayout.addView(imageView)

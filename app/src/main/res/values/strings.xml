@@ -19,4 +19,14 @@
     <string name="confirm_password">Confirm Password</string>
     <string name="password_strength">Password strength</string>
     <string name="title_activity_main2">MainActivity2</string>
+    <string name="user_photo">USER PHOTO</string>
+    <string name="default_name">No name found</string>
+    <string name="default_place">no place found</string>
+    <string name="default_branch">no branch found\n</string>
+    <string name="edit_details">EDIT DETAILS</string>
+    <string name="name">ENTER YOUR NAME</string>
+    <string name="place">ENTER YOU PLACE</string>
+    <string name="branch">ENTER YOUR BRANCH</string>
+    <string name="contact_number">ENTER YOUR CONTACT NUMBER</string>
+    <string name="submit">SUBMIT</string>
 </resources>

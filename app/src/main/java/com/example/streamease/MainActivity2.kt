@@ -12,7 +12,6 @@ import android.widget.SearchView
 import android.widget.TextView
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.TrackSelectionParameters
@@ -22,6 +21,7 @@ import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.PlayerView
 import com.example.streamease.FragmentScenes.MainScene
 import com.example.streamease.FragmentScenes.VideoScreen
+import com.example.streamease.FragmentScenes.profileView
 import com.example.streamease.FragmentScenes.scenes
 import com.example.streamease.Models.Video
 import com.example.streamease.databinding.ActivityMain2Binding
@@ -42,7 +42,8 @@ class MainActivity2 : AppCompatActivity() {
     var isInFullscreen: Boolean = false
     private val mainScene = MainScene()       // Home fragment
     private val videoScreen = VideoScreen() // Video screen fragment
-    private var activeFragment: Fragment = mainScene
+    private val profileScene = profileView() // Video screen fragment
+    private var activeFragment: scenes = mainScene
     private lateinit var searchContainer: LinearLayout
     private lateinit var videosearch: SearchView
     private lateinit var cancelButton: TextView
@@ -92,6 +93,9 @@ class MainActivity2 : AppCompatActivity() {
 
                 R.id.navigation_home -> {
                     showFragment(mainScene)
+                }
+                R.id.navigation_myAcc -> {
+                    showFragment(profileScene)
                 }
             }
             true
@@ -237,10 +241,17 @@ class MainActivity2 : AppCompatActivity() {
             .add(R.id.Replacable_frame, videoScreen, "VideoScreen")
             .hide(videoScreen)
             .commit()
+        supportFragmentManager.beginTransaction()
+            .add(R.id.Replacable_frame, profileScene, "ProfileScene")
+            .commit()
 
         supportFragmentManager.beginTransaction()
             .add(R.id.Replacable_frame, mainScene, "MainScene")
-            .commit() // MainScene is the default fragment
+            .hide(videoScreen)
+            .hide(profileScene)
+            .commit()
+         // MainScene is the default fragment
+
     }
 
     @OptIn(UnstableApi::class)
@@ -287,6 +298,7 @@ class MainActivity2 : AppCompatActivity() {
         transaction.show(fragment)
         transaction.commit()
         fragment.onMovedto()
+        activeFragment.onMovedFrom()
         activeFragment = fragment
     }
 

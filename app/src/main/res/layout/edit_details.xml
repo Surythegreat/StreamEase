@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/lighter_black"
+        android:orientation="vertical"
+        tools:context=".UserDetails">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <!-- User Details Form -->
+
+                <!-- Name Input Field -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    app:hintEnabled="true"
+                    app:boxBackgroundMode="outline"
+                    app:boxStrokeColor="@color/light_black"
+                    android:padding="5dp"
+                    app:hintTextColor="@color/lighter_black">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/user_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/dark_white"
+                        android:hint="@string/name"
+                        android:fontFamily="@font/roboto_medium"
+                        android:padding="8dp"
+                        android:textColor="@color/light_black"
+                        android:textColorHint="@color/lighter_black" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Place Input Field -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    app:hintEnabled="true"
+                    app:boxBackgroundMode="outline"
+                    app:boxStrokeColor="@color/light_black"
+                    android:padding="5dp"
+                    app:hintTextColor="@color/lighter_black">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/user_place"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/dark_white"
+                        android:hint="@string/place"
+                        android:fontFamily="@font/roboto_medium"
+                        android:padding="8dp"
+                        android:textColor="@color/light_black"
+                        android:textColorHint="@color/lighter_black" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Branch Input Field -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    app:hintEnabled="true"
+                    app:boxBackgroundMode="outline"
+                    app:boxStrokeColor="@color/light_black"
+                    android:padding="5dp"
+                    app:hintTextColor="@color/lighter_black">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/user_branch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/dark_white"
+                        android:hint="@string/branch"
+                        android:fontFamily="@font/roboto_medium"
+                        android:padding="8dp"
+                        android:textColor="@color/light_black"
+                        android:textColorHint="@color/lighter_black" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Submit Button -->
+                <Button
+                    android:id="@+id/submit_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="30dp"
+                    android:backgroundTint="@color/light_black"
+                    android:fontFamily="@font/roboto_medium"
+                    android:text="@string/submit"
+                    android:textColor="@color/dark_white"
+                    android:textSize="18sp"
+                    app:cornerRadius="30dp" />
+
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+</layout>
