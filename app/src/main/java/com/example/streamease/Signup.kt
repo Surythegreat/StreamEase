@@ -22,7 +22,8 @@ class Signup : AppCompatActivity() {
         setContentView(binding.root)
 
         firebaseauth=FirebaseAuth.getInstance()
-
+        binding.loginRedirectText.setOnClickListener { val intent = Intent(this,login::class.java)
+            startActivity(intent) }
         // Password Strength Checker
         binding.signupPassword.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}

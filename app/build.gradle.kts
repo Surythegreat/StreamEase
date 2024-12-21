@@ -26,8 +26,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            applicationIdSuffix = ".StreamEase"
-            versionNameSuffix = "1"
+
         }
     }
     compileOptions {
