@@ -137,14 +137,6 @@ class MainScene : scenes() {
 
     private fun setUpPagination() {
         nestedScrollView.setOnScrollChangeListener(NestedScrollView.OnScrollChangeListener { v, _, scrollY, _, _ ->
-            if (scrollY == 0) {
-                // Scrolled to the top
-                loadingPB.visibility = View.VISIBLE
-                mainActivity.Refresh() // Call the refresh function from MainActivity
-                // Optionally, hide the loadingPB after refreshing is complete
-                loadingPB.postDelayed({ loadingPB.visibility = View.GONE }, 1000)
-            }
-
             if (scrollY == v.getChildAt(0).measuredHeight - v.measuredHeight) {
                 page++
                 loadingPB.visibility = View.VISIBLE

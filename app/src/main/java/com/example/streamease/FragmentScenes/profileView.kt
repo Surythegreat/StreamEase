@@ -47,7 +47,7 @@ class profileView : scenes() {
         nameL = binding.userNameN
         placeL = binding.userPlaceN
         branchL = binding.userBranchN
-
+        binding.SeeSaved.setOnClickListener { mainActivity2.showSavedScene() }
         return binding.root
     }
 

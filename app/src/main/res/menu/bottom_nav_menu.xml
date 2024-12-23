@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <item
-        android:id="@+id/navigation_myAcc"
-        android:title="my ACC"
-        android:icon="@drawable/myaccountview"/>
     <item
         android:id="@+id/navigation_home"
         android:title="home"
 
         android:icon="@drawable/mainview"
-         />
+        />
 
     <item
         android:id="@+id/navigation_videoplay"
         android:title="videoplay"
 
         android:icon="@drawable/videoplayview"/>
+    <item
+        android:id="@+id/navigation_myAcc"
+        android:title="my ACC"
+        android:icon="@drawable/myaccountview"/>
+
+
 
     <item
     android:id="@+id/navigation_hisNsavV"

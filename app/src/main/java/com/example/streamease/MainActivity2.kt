@@ -32,6 +32,7 @@ import com.example.streamease.helper.RetrofitClient
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.firestore
 import io.github.hyuwah.draggableviewlib.DraggableView
 import io.github.hyuwah.draggableviewlib.setupDraggable
@@ -137,6 +138,8 @@ class MainActivity2 : AppCompatActivity() {
         touchInterceptor.setOnTouchListener { _, _ -> true }
 
         fetchVideos()
+
+
     }
 
     private fun fetchVideos() {
@@ -352,6 +355,8 @@ class MainActivity2 : AppCompatActivity() {
         }
         val bundle = Bundle()
         bundle.putString("url", video.url)
+
+        bundle.putInt(KEY_VIDEO_IDS, video.id)
         val videolinklist: ArrayList<String> = arrayListOf()
         val videoqualitylist: ArrayList<String> = arrayListOf()
         val pictures: ArrayList<String> = arrayListOf()
@@ -456,12 +461,16 @@ class MainActivity2 : AppCompatActivity() {
             }
     }
 
-    fun Refresh() {
-        Toast.makeText(this,"refreshed",Toast.LENGTH_SHORT).show()
+
+    fun showSavedScene() {
+        showFragment(SavedScene)
+
+        nav.selectedItemId = R.id.navigation_hisNsavV
     }
 
     companion object {
         const val KEY_VIDEO_LINKS = "Video links"
+        const val KEY_VIDEO_IDS = "Video_ID"
         const val KEY_MIN_video = "Video min"
         const val KEY_VIDEO_QUALITY = "video quality"
         const val KEY_PICTURES = "pictures"

@@ -15,6 +15,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
@@ -34,6 +35,12 @@ import com.example.streamease.R
 import com.example.streamease.databinding.FragmentVideoScreenBinding
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.firestore
 
 
 @UnstableApi
@@ -58,6 +65,13 @@ class VideoScreen : scenes() {
     private lateinit var photosLayout: LinearLayout
     val Int.dp: Int
         get() = (this * resources.displayMetrics.density).toInt()
+
+    private lateinit var likeButton: ImageView
+    private lateinit var dislikeButton: ImageView
+    private lateinit var likeCount: TextView
+    private lateinit var dislikeCount: TextView
+    private var likes = 0
+    private var dislikes = 0
 
 
     override fun onCreateView(
@@ -90,12 +104,152 @@ class VideoScreen : scenes() {
         playerView.player = player
         setupFullscreenHandler()
 
+
+        likeButton = binding.likeButton
+        dislikeButton = binding.dislikeButton
+        likeCount = binding.likeCount
+        dislikeCount = binding.dislikeCount
+
+
     }
+
+    private var isUpdating = false // Add a flag to prevent multiple updates
+
+    private fun updateLikeDislike(videoId: Int, field: String) {
+        if (isUpdating) {
+            Toast.makeText(context, "Please wait...", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        isUpdating = true // Lock the update process
+        val videoRef = Firebase.firestore.collection("Videos").document(videoId.toString())
+        val userId = Firebase.auth.currentUser?.uid ?: return.also { isUpdating = false }
+
+        val interactionRef = videoRef.collection("interactions").document(userId)
+
+        // Check if the document exists
+        videoRef.get().addOnSuccessListener { videoDoc ->
+            if (!videoDoc.exists()) {
+                // Create the document if it doesn't exist
+                videoRef.set(mapOf("likes" to 0, "dislikes" to 0))
+                    .addOnSuccessListener {
+                        Log.d("updateLike", "Document created successfully.")
+                        performUpdate(videoRef, interactionRef, field)
+                    }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(context, "Failed to create document: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Log.d("updateLike", "Failed to create document: ${e.message}")
+                        isUpdating = false
+                    }
+            } else {
+                // Proceed with the update if the document exists
+                performUpdate(videoRef, interactionRef, field)
+            }
+        }.addOnFailureListener { e ->
+            Toast.makeText(context, "Error checking document: ${e.message}", Toast.LENGTH_SHORT).show()
+            Log.d("updateLike", "Error fetching document: ${e.message}")
+            isUpdating = false
+        }
+    }
+
+    private fun performUpdate(
+        videoRef: DocumentReference,
+        interactionRef: DocumentReference,
+        field: String
+    ) {
+        interactionRef.get().addOnSuccessListener { interactionDoc ->
+            if (interactionDoc.exists()) {
+                val existingAction = interactionDoc.getString("action")
+                if (existingAction == field) {
+                    Toast.makeText(context, "You have already $field this video.", Toast.LENGTH_SHORT).show()
+                    isUpdating = false
+                    return@addOnSuccessListener
+                } else {
+                    Toast.makeText(context, "You can't both like and dislike a video.", Toast.LENGTH_SHORT).show()
+                    isUpdating = false
+                    return@addOnSuccessListener
+                }
+            }
+
+            // Proceed with Firestore transaction to update counts atomically
+            Firebase.firestore.runTransaction { transaction ->
+                val snapshot = transaction.get(videoRef)
+                val currentCount = snapshot.getLong(field) ?: 0
+                transaction.update(videoRef, field, currentCount + 1)
+
+                // Update the interactions document
+                transaction.set(interactionRef, mapOf("action" to field))
+            }.addOnSuccessListener {
+                // Update UI after successful transaction
+                if (field == "likes") {
+                    likes++
+                    likeCount.text = likes.toString()
+                } else {
+                    dislikes++
+                    dislikeCount.text = dislikes.toString()
+                }
+            }.addOnFailureListener { e ->
+                Toast.makeText(context, "Failed to update $field: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.d("updateLike", "Failed to update video data: ${e.message}")
+            }.addOnCompleteListener {
+                isUpdating = false // Unlock the update process
+            }
+        }.addOnFailureListener { e ->
+            Toast.makeText(context, "Error checking interaction: ${e.message}", Toast.LENGTH_SHORT).show()
+            Log.d("updateLike", "Error fetching interaction: ${e.message}")
+            isUpdating = false
+        }
+    }
+
+
+
+
+    private fun fetchVideoData(videoId: Int) {
+        val videoRef = Firebase.firestore.collection("Videos").document(videoId.toString())
+
+        videoRef.get()
+            .addOnSuccessListener { document ->
+                if (document != null) {
+                    likes = document.getLong("likes")?.toInt() ?: 0
+                    dislikes = document.getLong("dislikes")?.toInt() ?: 0
+
+                    likeCount.text = likes.toString()
+                    dislikeCount.text = dislikes.toString()
+                }
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(context, "Failed to load video data: ${e.message}", Toast.LENGTH_SHORT).show()
+
+            }
+    }
+
+
     override fun onMovedto(){
-        setupPlayer()
-        setupVideoTitle()
-        setupQualitySelector()
-        setupPreviewImages()
+            setupPlayer()
+            setupVideoTitle()
+            setupQualitySelector()
+            setupPreviewImages()
+
+            val videoId = arguments?.getInt(MainActivity2.KEY_VIDEO_IDS)
+            if (videoId != null) {
+                fetchVideoData(videoId)
+            }
+
+            likeButton.setOnClickListener {
+                if (videoId != null) {
+                    updateLikeDislike(videoId, "likes")
+                } else {
+                    Toast.makeText(context, "Invalid video ID", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            dislikeButton.setOnClickListener {
+                if (videoId != null) {
+                    updateLikeDislike(videoId, "dislikes")
+                } else {
+                    Toast.makeText(context, "Invalid video ID", Toast.LENGTH_SHORT).show()
+                }
+            }
     }
 
         @OptIn(UnstableApi::class)

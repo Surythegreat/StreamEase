@@ -73,6 +73,68 @@
                 android:paddingBottom="@dimen/general_pading"
                 android:textStyle="bold" />
 
+            <!-- Like and Dislike Buttons -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginTop="20dp">
+
+                <!-- Like Button -->
+                <LinearLayout
+                    android:id="@+id/like_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:padding="10dp">
+
+                    <ImageView
+                        android:id="@+id/like_button"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:backgroundTint="@color/dark_white"
+                        android:src="@drawable/ic_like" />
+
+                    <TextView
+                        android:id="@+id/like_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="8dp"
+                        android:text="0"
+                        android:textSize="18sp"
+                        android:textColor="@color/white" />
+                </LinearLayout>
+
+                <!-- Dislike Button -->
+                <LinearLayout
+                    android:id="@+id/dislike_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:layout_marginLeft="20dp">
+
+                    <ImageView
+                        android:id="@+id/dislike_button"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_dislike" />
+
+                    <TextView
+                        android:id="@+id/dislike_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="8dp"
+                        android:text="0"
+                        android:textSize="18sp"
+                        android:textColor="@color/white" />
+                </LinearLayout>
+            </LinearLayout>
+
+
             <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -88,6 +150,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="SAVE VIDEO"
+                android:layout_margin="@dimen/general_margin"
+                android:padding="@dimen/general_pading"
                 android:textSize="@dimen/smal_title_Size"
                 android:id="@+id/Save"
                 android:textColor="@color/dark_white"
