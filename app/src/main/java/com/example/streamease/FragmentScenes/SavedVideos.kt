@@ -16,11 +16,13 @@ import com.example.streamease.databinding.FragmentSavedVideosBinding
 import com.example.streamease.helper.myAdapter
 
 
+@UnstableApi
 class SavedVideos : scenes() {
 
     private lateinit var mainActivity: MainActivity2
     private lateinit var binding: FragmentSavedVideosBinding
 
+    @OptIn(UnstableApi::class)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -31,22 +33,27 @@ class SavedVideos : scenes() {
         return binding.root
     }
 
-    override fun onMovedto() {
-        super.onMovedto()
+    fun UpdateSaved() {
         if(mainActivity.Savedvideos.size==0){
             binding.noVideo.visibility=View.VISIBLE
-        }else{
-            binding.noVideo.visibility=View.GONE
-        }
-        val adapter = myAdapter(mainActivity, mainActivity.Savedvideos)
-        binding.recycleview.adapter = adapter
-        binding.recycleview.layoutManager = LinearLayoutManager(activity)
-        adapter.setOnItemClickListner(object : myAdapter.onItemClickListner {
-            @OptIn(UnstableApi::class)
-            override fun onItemClick(position: Int) {
-                mainActivity.strartVideoScene(mainActivity.Savedvideos[position])
-            }
+        }else {
+            binding.noVideo.visibility = View.GONE
 
-        })
+            val adapter = myAdapter(mainActivity, mainActivity.Savedvideos, true)
+            adapter.setOnItemcloseClickListner(object : myAdapter.onItemClickListner {
+                override fun onItemClick(position: Int) {
+                    mainActivity.removeSavedVideo(position)
+                }
+            })
+            binding.recycleview.adapter = adapter
+            binding.recycleview.layoutManager = LinearLayoutManager(activity)
+            adapter.setOnItemClickListner(object : myAdapter.onItemClickListner {
+                @OptIn(UnstableApi::class)
+                override fun onItemClick(position: Int) {
+                    mainActivity.strartVideoScene(mainActivity.Savedvideos[position])
+                }
+
+            })
+        }
     }
 }

@@ -10,6 +10,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.SearchView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -152,6 +153,8 @@ class MainActivity2 : AppCompatActivity() {
                                         if (video != null) {
                                             Log.d("MainActivity", "Fetched video: ${video.id}")
                                             Savedvideos+=video
+                                            SavedScene.UpdateSaved()
+
                                         }
 
                                     }
@@ -159,6 +162,7 @@ class MainActivity2 : AppCompatActivity() {
                             }
 
                     }
+                    SavedScene.UpdateSaved()
                 }
         }
     }
@@ -171,6 +175,7 @@ class MainActivity2 : AppCompatActivity() {
             val res = RetrofitClient.instance?.api?.getVideo(apiKEY, videoId)?.awaitResponse()
             if(res!=null && res.isSuccessful){
                 res.body()
+
             }else {
                 Log.e("getVideoById", "Failed with response code: ${res?.code()}")
                 null
@@ -196,8 +201,8 @@ class MainActivity2 : AppCompatActivity() {
     }
 
 
-    private fun onLOGOPressed() {
-
+     fun onLOGOPressed() {
+        SavedScene.UpdateSaved()
         hassearched = false
         nav.selectedItemId = R.id.navigation_home
         showFragment(mainScene)
@@ -328,6 +333,7 @@ class MainActivity2 : AppCompatActivity() {
             .add(R.id.Replacable_frame, SavedScene, "SavedVideoScene")
             .commit()
 
+
         supportFragmentManager.beginTransaction()
             .add(R.id.Replacable_frame, mainScene, "MainScene")
             .hide(videoScreen)
@@ -374,16 +380,25 @@ class MainActivity2 : AppCompatActivity() {
         nav.menu.findItem(R.id.navigation_videoplay).isEnabled = true
     }
     fun SaveCurrentVideo(){
+        if (Savedvideos.any { it.id == currentvideo.id }) {
+            Log.d("MainActivity", "Video already exists in the saved list.")
+            return
+        }
+
         val videoId = currentvideo.id // Assuming `id` is an Int
 
-        // Save the video ID as an Int in Firebase
+        // Save the video ID as an Int in FirSavedScene.UpdateSaved()ebase
         val videoData = hashMapOf("videoId" to videoId)
         db.collection("User").document(userid!!).collection("SAVED").document(videoId.toString())
             .set(videoData)
             .addOnSuccessListener {
                 Log.d("MainActivity", "Video saved to Firebase successfully!")
                 // Add the video to the local Savedvideos list
+                if (Savedvideos.any { it.id == currentvideo.id }) {
+                    Log.d("MainActivity", "Video already exists in the saved list.")
+                }
                 Savedvideos.add(currentvideo)
+                SavedScene.UpdateSaved()
             }
             .addOnFailureListener { exception ->
                 Log.e("MainActivity", "Error saving video: ", exception)
@@ -424,6 +439,25 @@ class MainActivity2 : AppCompatActivity() {
         super.onRestoreInstanceState(savedInstanceState)
         hassearched = savedInstanceState.getBoolean("hasSearched", false)
         lastquery = savedInstanceState.getString("lastQuery", "")
+    }
+
+    fun removeSavedVideo(position: Int) {
+        if (position < 0 || position >= Savedvideos.size) {
+            Log.e("MainActivity2", "Invalid position: $position. List size: ${Savedvideos.size}")
+            return
+        }
+        db.collection("User").document(userid!!).collection("SAVED").document(Savedvideos[position].id.toString()).delete()
+            .addOnSuccessListener {
+                if (position < 0 || position >= Savedvideos.size) {
+                    Log.e("MainActivity2", "Invalid position: $position. List size: ${Savedvideos.size}")
+                }else{
+                Savedvideos.removeAt(position)
+                SavedScene.UpdateSaved()}
+            }
+    }
+
+    fun Refresh() {
+        Toast.makeText(this,"refreshed",Toast.LENGTH_SHORT).show()
     }
 
     companion object {

@@ -7,7 +7,9 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.OptIn
 import androidx.appcompat.app.AlertDialog
+import androidx.media3.common.util.UnstableApi
 import com.example.streamease.MainActivity2
 import com.example.streamease.R
 import com.example.streamease.databinding.FragmentProfileViewBinding
@@ -15,6 +17,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
 
+@UnstableApi
 class profileView : scenes() {
     private lateinit var binding: FragmentProfileViewBinding
     private lateinit var profileeditDialog: AlertDialog
@@ -32,6 +35,7 @@ class profileView : scenes() {
     private lateinit var mainActivity2: MainActivity2;
 
 
+    @OptIn(UnstableApi::class)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?

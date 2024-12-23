@@ -13,6 +13,7 @@ import androidx.core.widget.NestedScrollView
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.streamease.MainActivity2
 import com.example.streamease.Models.PageData
 import com.example.streamease.Models.Video
@@ -38,6 +39,7 @@ class MainScene : scenes() {
     private lateinit var recycleV: RecyclerView
     private lateinit var nestedScrollView: NestedScrollView
     private lateinit var mainActivity: MainActivity2
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -57,6 +59,20 @@ class MainScene : scenes() {
         notfoundtext = binding.notfoundtext
         recycleV = binding.recycleview
         nestedScrollView = binding.nestedscrollview
+        swipeRefreshLayout = binding.swipeRefreshLayout
+
+        // Setup refresh listener
+        swipeRefreshLayout.setOnRefreshListener {
+            swipeRefreshLayout.isRefreshing = true
+
+            // Reset the data and refresh
+            Reset()
+
+            // Stop the refreshing animation after data is loaded
+            swipeRefreshLayout.postDelayed({
+                swipeRefreshLayout.isRefreshing = false
+            }, 1500) // Adjust delay based on data loading time
+        }
 
 
         fetchData(page,totalRes)
@@ -79,7 +95,7 @@ class MainScene : scenes() {
             notfoundtext.visibility = View.GONE
         }
         videolist.addAll(response.body()?.videos ?: emptyList())
-        val adapter = myAdapter(mainActivity, videolist)
+        val adapter = myAdapter(mainActivity, videolist,false)
         recycleV.adapter = adapter
         recycleV.layoutManager = LinearLayoutManager(activity)
         adapter.setOnItemClickListner(object : myAdapter.onItemClickListner {
@@ -121,6 +137,14 @@ class MainScene : scenes() {
 
     private fun setUpPagination() {
         nestedScrollView.setOnScrollChangeListener(NestedScrollView.OnScrollChangeListener { v, _, scrollY, _, _ ->
+            if (scrollY == 0) {
+                // Scrolled to the top
+                loadingPB.visibility = View.VISIBLE
+                mainActivity.Refresh() // Call the refresh function from MainActivity
+                // Optionally, hide the loadingPB after refreshing is complete
+                loadingPB.postDelayed({ loadingPB.visibility = View.GONE }, 1000)
+            }
+
             if (scrollY == v.getChildAt(0).measuredHeight - v.measuredHeight) {
                 page++
                 loadingPB.visibility = View.VISIBLE

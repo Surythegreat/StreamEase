@@ -20,6 +20,14 @@
             android:layout_margin="@dimen/general_margin"
             android:layout_marginStart="@dimen/general_margin"/>
 
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/light_black"
+                android:layout_gravity="top|end"
+                android:id="@+id/close_button"
+                android:visibility="gone"
+                android:src="@drawable/close"/>
             <TextView
                 android:id="@+id/DESC"
                 android:layout_width="wrap_content"

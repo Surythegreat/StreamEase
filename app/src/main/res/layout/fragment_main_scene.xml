@@ -5,7 +5,10 @@
     android:layout_height="match_parent"
     android:background="@color/dark_white"
     tools:context=".FragmentScenes.MainScene">
-
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
     <androidx.core.widget.NestedScrollView
         android:id="@+id/nestedscrollview"
         android:layout_width="match_parent"
@@ -31,14 +34,16 @@
                 android:layout_height="wrap_content" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
     <TextView
         android:layout_width="wrap_content"
         android:visibility="gone"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:fontFamily="@font/roboto_medium"
-        android:textColor="@color/dark_white"
+        android:textColor="@color/light_black"
         android:id="@+id/notfoundtext"
+
         android:textSize="30sp"
         android:text=""/>
 </FrameLayout>
