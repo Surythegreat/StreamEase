@@ -4,6 +4,8 @@
         <!-- Customize your light theme here. -->
         <item name="android:windowBackground">@color/light_black</item>
          <item name="colorPrimary">@color/lighter_black</item>
+        <item name="android:editTextColor">@color/dark_white</item>
+        <item name="android:textColorHint">@color/Dark_grey</item>
     </style>
 
     <style name="Theme.StreamEase" parent="Base.Theme.StreamEase" />
