@@ -1,17 +1,14 @@
 package com.example.streamease.FragmentScenes
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.transition.Scene
 import com.example.streamease.MainActivity2
-import com.example.streamease.R
-import com.example.streamease.databinding.FragmentProfileViewBinding
 import com.example.streamease.databinding.FragmentSavedVideosBinding
 import com.example.streamease.helper.myAdapter
 
@@ -36,6 +33,7 @@ class SavedVideos : scenes() {
     fun UpdateSaved() {
         if(mainActivity.Savedvideos.size==0){
             binding.noVideo.visibility=View.VISIBLE
+            binding.recycleview.adapter = myAdapter(mainActivity, listOf(), true)
         }else {
             binding.noVideo.visibility = View.GONE
 

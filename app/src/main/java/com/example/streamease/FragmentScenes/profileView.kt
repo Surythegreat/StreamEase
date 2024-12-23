@@ -13,9 +13,6 @@ import androidx.media3.common.util.UnstableApi
 import com.example.streamease.MainActivity2
 import com.example.streamease.R
 import com.example.streamease.databinding.FragmentProfileViewBinding
-import com.google.firebase.Firebase
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.firestore
 
 @UnstableApi
 class profileView : scenes() {
@@ -94,13 +91,13 @@ class profileView : scenes() {
             mainActivity2.db.collection("User").document(mainActivity2.userid!!).get()
                 .addOnSuccessListener {
                     if (it != null) {
-                        namet = it.data?.get("Name")?.toString().toString()
-                        placet = it.data?.get("Place")?.toString().toString()
-                        brancht = it.data?.get("Branch")?.toString().toString()
+                        namet = it.data?.get("Name")?.toString()?:""
+                        placet = it.data?.get("Place")?.toString()?:""
+                        brancht = it.data?.get("Branch")?.toString()?:""
 
-                        nameL.text = "Name: $namet"
-                        placeL.text = "Place: $placet"
-                        branchL.text = "Branch: $brancht"
+                        "Name: $namet".also { nameL.text = it }
+                        "Place: $placet".also { placeL.text = it }
+                        "Branch: $brancht".also { branchL.text = it }
                     }
                 }
         }

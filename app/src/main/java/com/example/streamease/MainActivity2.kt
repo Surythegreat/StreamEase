@@ -32,15 +32,11 @@ import com.example.streamease.helper.RetrofitClient
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.firestore
 import io.github.hyuwah.draggableviewlib.DraggableView
 import io.github.hyuwah.draggableviewlib.setupDraggable
 import jp.wasabeef.blurry.Blurry
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import retrofit2.awaitResponse
 
 @UnstableApi
@@ -387,6 +383,8 @@ class MainActivity2 : AppCompatActivity() {
     fun SaveCurrentVideo(){
         if (Savedvideos.any { it.id == currentvideo.id }) {
             Log.d("MainActivity", "Video already exists in the saved list.")
+            Toast.makeText(this,"Video already exists in the saved list.",Toast.LENGTH_SHORT).show()
+
             return
         }
 
@@ -398,9 +396,11 @@ class MainActivity2 : AppCompatActivity() {
             .set(videoData)
             .addOnSuccessListener {
                 Log.d("MainActivity", "Video saved to Firebase successfully!")
+                Toast.makeText(this,"Video Saved",Toast.LENGTH_SHORT).show()
                 // Add the video to the local Savedvideos list
                 if (Savedvideos.any { it.id == currentvideo.id }) {
                     Log.d("MainActivity", "Video already exists in the saved list.")
+                    Toast.makeText(this,"Video already exists in the saved list.",Toast.LENGTH_SHORT).show()
                 }
                 Savedvideos.add(currentvideo)
                 SavedScene.UpdateSaved()
@@ -453,7 +453,7 @@ class MainActivity2 : AppCompatActivity() {
         }
         db.collection("User").document(userid!!).collection("SAVED").document(Savedvideos[position].id.toString()).delete()
             .addOnSuccessListener {
-                if (position < 0 || position >= Savedvideos.size) {
+                if (position >= Savedvideos.size) {
                     Log.e("MainActivity2", "Invalid position: $position. List size: ${Savedvideos.size}")
                 }else{
                 Savedvideos.removeAt(position)

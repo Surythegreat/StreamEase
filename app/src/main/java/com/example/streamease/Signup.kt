@@ -74,12 +74,28 @@ class Signup : AppCompatActivity() {
 
     // Update Password Strength
     private fun updatePasswordStrength(password: String) {
+        var point=0
+        if(password.length >= 8){
+            point++
+        }
+        if(password.matches(".*[A-Z].*".toRegex())){
+            point++
+        }
+        if(password.matches(".*[a-z].*".toRegex())){
+            point++
+        }
+        if(password.matches(".*\\d.*".toRegex())){
+            point++
+        }
+        if(password.matches(".*[!@#\$%^&*(),.?\":{}|<>].*".toRegex())){
+            point++
+        }
         val strengthText = when {
-            password.length < 6 -> {
+            point<3 -> {
                 binding.passwordStrength.setTextColor(Color.RED)
                 "Weak"
             }
-            password.length < 10 || !password.matches(".*[A-Za-z].*".toRegex()) || !password.matches(".*\\d.*".toRegex()) -> {
+            point<5 -> {
                 binding.passwordStrength.setTextColor(Color.YELLOW)
                 "Moderate"
             }

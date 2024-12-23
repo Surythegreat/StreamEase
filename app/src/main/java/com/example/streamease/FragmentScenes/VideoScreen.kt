@@ -38,8 +38,6 @@ import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.DocumentReference
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
 
 
@@ -113,7 +111,16 @@ class VideoScreen : scenes() {
 
     }
 
-    private var isUpdating = false // Add a flag to prevent multiple updates
+    private var isUpdating = false
+        set(value) {
+            binding.likeDislikeLoading.visibility = if (value) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
+            field = value
+
+        }// Add a flag to prevent multiple updates
 
     private fun updateLikeDislike(videoId: Int, field: String) {
         if (isUpdating) {
@@ -123,7 +130,11 @@ class VideoScreen : scenes() {
 
         isUpdating = true // Lock the update process
         val videoRef = Firebase.firestore.collection("Videos").document(videoId.toString())
-        val userId = Firebase.auth.currentUser?.uid ?: return.also { isUpdating = false }
+        val userId = Firebase.auth.currentUser?.uid
+        if (userId == null) {
+            isUpdating = false
+            return
+        }
 
         val interactionRef = videoRef.collection("interactions").document(userId)
 
@@ -158,35 +169,57 @@ class VideoScreen : scenes() {
         field: String
     ) {
         interactionRef.get().addOnSuccessListener { interactionDoc ->
-            if (interactionDoc.exists()) {
-                val existingAction = interactionDoc.getString("action")
-                if (existingAction == field) {
-                    Toast.makeText(context, "You have already $field this video.", Toast.LENGTH_SHORT).show()
-                    isUpdating = false
-                    return@addOnSuccessListener
-                } else {
-                    Toast.makeText(context, "You can't both like and dislike a video.", Toast.LENGTH_SHORT).show()
-                    isUpdating = false
-                    return@addOnSuccessListener
-                }
-            }
+            val oppositeField = if (field == "likes") "dislikes" else "likes"
+            val currentAction = interactionDoc.getString("action")
+            val isAlreadyPerformed = currentAction == field
 
-            // Proceed with Firestore transaction to update counts atomically
+            // Firestore transaction to toggle counts atomically
             Firebase.firestore.runTransaction { transaction ->
                 val snapshot = transaction.get(videoRef)
-                val currentCount = snapshot.getLong(field) ?: 0
-                transaction.update(videoRef, field, currentCount + 1)
+                val currentFieldCount = snapshot.getLong(field) ?: 0
+                val oppositeFieldCount = snapshot.getLong(oppositeField) ?: 0
 
-                // Update the interactions document
-                transaction.set(interactionRef, mapOf("action" to field))
+                if (isAlreadyPerformed) {
+                    // User is toggling off the current action
+                    transaction.update(videoRef, field, currentFieldCount - 1)
+                    transaction.delete(interactionRef)
+                } else {
+                    // User is performing a new action
+                    transaction.update(videoRef, field, currentFieldCount + 1)
+                    if (currentAction == oppositeField) {
+                        // If the user had previously done the opposite action, decrement it
+                        transaction.update(videoRef, oppositeField, oppositeFieldCount - 1)
+                    }
+                    transaction.set(interactionRef, mapOf("action" to field))
+                }
             }.addOnSuccessListener {
                 // Update UI after successful transaction
-                if (field == "likes") {
-                    likes++
-                    likeCount.text = likes.toString()
+                if (isAlreadyPerformed) {
+                    // Toggled off
+                    if (field == "likes") {
+                        likes--
+                        likeCount.text = likes.toString()
+                    } else {
+                        dislikes--
+                        dislikeCount.text = dislikes.toString()
+                    }
                 } else {
-                    dislikes++
-                    dislikeCount.text = dislikes.toString()
+                    // Toggled on
+                    if (field == "likes") {
+                        likes++
+                        likeCount.text = likes.toString()
+                        if (currentAction == "dislikes") {
+                            dislikes--
+                            dislikeCount.text = dislikes.toString()
+                        }
+                    } else {
+                        dislikes++
+                        dislikeCount.text = dislikes.toString()
+                        if (currentAction == "likes") {
+                            likes--
+                            likeCount.text = likes.toString()
+                        }
+                    }
                 }
             }.addOnFailureListener { e ->
                 Toast.makeText(context, "Failed to update $field: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -200,6 +233,7 @@ class VideoScreen : scenes() {
             isUpdating = false
         }
     }
+
 
 
 
