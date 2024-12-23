@@ -5,4 +5,7 @@ import androidx.fragment.app.Fragment
 open class scenes:Fragment() {
     open fun onMovedto(){}
     open fun onMovedFrom(){}
+    open fun navid(): Int {
+        return 0;
+    }
 }

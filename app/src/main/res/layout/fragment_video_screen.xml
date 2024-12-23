@@ -104,7 +104,7 @@
                         android:layout_marginLeft="8dp"
                         android:text="0"
                         android:textSize="18sp"
-                        android:textColor="@color/white" />
+                        android:textColor="@color/dark_white" />
                 </LinearLayout>
 
                 <!-- Dislike Button -->
@@ -130,7 +130,7 @@
                         android:layout_marginLeft="8dp"
                         android:text="0"
                         android:textSize="18sp"
-                        android:textColor="@color/white" />
+                        android:textColor="@color/dark_white" />
                 </LinearLayout>
             </LinearLayout>
 

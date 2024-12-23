@@ -1,6 +1,7 @@
 package com.example.streamease
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -11,6 +12,7 @@ import android.widget.LinearLayout
 import android.widget.SearchView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -55,6 +57,7 @@ class MainActivity2 : AppCompatActivity() {
     private val profileScene = profileView() // Video screen fragment
     private val SavedScene = SavedVideos() // Video screen fragment
     private var activeFragment: scenes = mainScene
+    private var previusScene: scenes? = null
     private lateinit var searchContainer: LinearLayout
     private lateinit var videosearch: SearchView
     private lateinit var cancelButton: TextView
@@ -92,7 +95,6 @@ class MainActivity2 : AppCompatActivity() {
 
         nav = binding.navView
         setupFragments()
-        nav.selectedItemId = R.id.navigation_home
         nav.menu.findItem(R.id.navigation_videoplay).isEnabled = false
         showFragment(mainScene)
         nav.setOnItemSelectedListener {
@@ -100,7 +102,10 @@ class MainActivity2 : AppCompatActivity() {
                 // Ignore navigation actions in fullscreen mode
                 return@setOnItemSelectedListener false
             }
-
+            if (nav.selectedItemId == it.itemId) {
+                // Avoid unnecessary fragment loading
+                return@setOnItemSelectedListener false
+            }
             when (it.itemId) {
                 R.id.navigation_videoplay -> {
                     showFragment(videoScreen)
@@ -135,6 +140,17 @@ class MainActivity2 : AppCompatActivity() {
 
         fetchVideos()
 
+
+        onBackPressedDispatcher.addCallback(this, object: OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if(previusScene==null) {
+                    finish()
+                }else{
+
+                    showFragment(previusScene!!)
+                }
+            }
+        })
 
     }
 
@@ -203,7 +219,6 @@ class MainActivity2 : AppCompatActivity() {
      fun onLOGOPressed() {
         SavedScene.UpdateSaved()
         hassearched = false
-        nav.selectedItemId = R.id.navigation_home
         showFragment(mainScene)
         mainScene.Reset()
 //        player.stop()
@@ -309,7 +324,6 @@ class MainActivity2 : AppCompatActivity() {
 
     private fun onSearched(query: String?) {
         showFragment(mainScene)
-        nav.selectedItemId = R.id.navigation_home
         mainScene.Reset(query)
         hassearched = true
 
@@ -375,7 +389,6 @@ class MainActivity2 : AppCompatActivity() {
         bundle.putStringArrayList(KEY_PICTURES, pictures)
         videoScreen.arguments = bundle
         showFragment(videoScreen)
-        nav.selectedItemId = R.id.navigation_videoplay
         currentvideo=video
 
         nav.menu.findItem(R.id.navigation_videoplay).isEnabled = true
@@ -410,17 +423,50 @@ class MainActivity2 : AppCompatActivity() {
             }
     }
     private fun showFragment(fragment: scenes) {
-        if (fragment == activeFragment) return
+        try {
+            if (fragment == activeFragment) return
 
+            // Begin the fragment transaction
+            val transaction = supportFragmentManager.beginTransaction()
 
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.hide(activeFragment)
-        transaction.show(fragment)
-        transaction.commit()
-        fragment.onMovedto()
-        activeFragment.onMovedFrom()
-        activeFragment = fragment
+            // Safely hide the current fragment
+            if (supportFragmentManager.fragments.contains(activeFragment)) {
+                transaction.hide(activeFragment)
+            } else {
+                Log.e("MainActivity2", "Active fragment not found in FragmentManager: $activeFragment")
+            }
+
+            // Check if the new fragment is already added to the FragmentManager
+            if (supportFragmentManager.fragments.contains(fragment)) {
+                transaction.show(fragment)
+            } else {
+                transaction.add(R.id.Replacable_frame, fragment, fragment::class.java.simpleName)
+            }
+
+            // Clear the backstack
+            supportFragmentManager.popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
+
+            // Add the new fragment without adding it to the backstack
+            transaction.commit()
+
+            // Update the active and previous fragments
+            previusScene = activeFragment
+            activeFragment.onMovedFrom()
+            activeFragment = fragment
+            activeFragment.onMovedto()
+
+            // Update navigation selection
+            nav.selectedItemId = fragment.navid()
+        } catch (e: Exception) {
+            Log.e("MainActivity2", "Error in showFragment: ${e.message}", e)
+        }
     }
+
+
+
+
+
+
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
@@ -467,6 +513,17 @@ class MainActivity2 : AppCompatActivity() {
 
         nav.selectedItemId = R.id.navigation_hisNsavV
     }
+
+    fun logout(){
+        FirebaseAuth.getInstance().signOut()
+
+        // Optionally, you can redirect the user to the login screen
+        val intent = Intent(this, login::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
+    }
+
 
     companion object {
         const val KEY_VIDEO_LINKS = "Video links"

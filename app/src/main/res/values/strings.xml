@@ -30,4 +30,5 @@
     <string name="contact_number">ENTER YOUR CONTACT NUMBER</string>
     <string name="submit">SUBMIT</string>
     <string name="see_saved_videos">See Saved Videos</string>
+    <string name="sign_out">Sign OUT</string>
 </resources>

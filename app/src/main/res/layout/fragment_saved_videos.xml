@@ -39,6 +39,7 @@
             android:id="@+id/recycleview"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:background="@color/dark_white"
             android:layout_weight="1"
             android:nestedScrollingEnabled="false"
             tools:listitem="@layout/eachvideothumb" />

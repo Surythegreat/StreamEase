@@ -70,6 +70,10 @@ class VideoScreen : scenes() {
     private lateinit var dislikeCount: TextView
     private var likes = 0
     private var dislikes = 0
+    val userId = Firebase.auth.currentUser?.uid
+    override fun navid(): Int {
+        return R.id.navigation_videoplay
+    }
 
 
     override fun onCreateView(
@@ -130,7 +134,7 @@ class VideoScreen : scenes() {
 
         isUpdating = true // Lock the update process
         val videoRef = Firebase.firestore.collection("Videos").document(videoId.toString())
-        val userId = Firebase.auth.currentUser?.uid
+
         if (userId == null) {
             isUpdating = false
             return
@@ -198,25 +202,33 @@ class VideoScreen : scenes() {
                     // Toggled off
                     if (field == "likes") {
                         likes--
+                        likeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.dark_white))
                         likeCount.text = likes.toString()
+
                     } else {
                         dislikes--
+                        dislikeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.dark_white))
                         dislikeCount.text = dislikes.toString()
                     }
                 } else {
                     // Toggled on
                     if (field == "likes") {
                         likes++
+                        likeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.blue))
                         likeCount.text = likes.toString()
                         if (currentAction == "dislikes") {
                             dislikes--
+                            dislikeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.dark_white))
                             dislikeCount.text = dislikes.toString()
                         }
                     } else {
                         dislikes++
+
+                        dislikeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.red))
                         dislikeCount.text = dislikes.toString()
                         if (currentAction == "likes") {
                             likes--
+                            likeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.dark_white))
                             likeCount.text = likes.toString()
                         }
                     }
@@ -255,6 +267,17 @@ class VideoScreen : scenes() {
                 Toast.makeText(context, "Failed to load video data: ${e.message}", Toast.LENGTH_SHORT).show()
 
             }
+        if (userId != null) {
+            videoRef.collection("interactions").document(userId).get().addOnSuccessListener { r->
+                val currentAction = r.getString("action")
+                if(currentAction=="likes"){
+                    likeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.blue))
+                }
+                if(currentAction == "dislikes"){
+                    dislikeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.red))
+                }
+            }
+        }
     }
 
 

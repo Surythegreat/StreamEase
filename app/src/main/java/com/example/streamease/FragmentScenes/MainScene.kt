@@ -17,6 +17,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.streamease.MainActivity2
 import com.example.streamease.Models.PageData
 import com.example.streamease.Models.Video
+import com.example.streamease.R
 import com.example.streamease.databinding.FragmentMainSceneBinding
 import com.example.streamease.helper.RetrofitClient
 import com.example.streamease.helper.myAdapter
@@ -40,6 +41,10 @@ class MainScene : scenes() {
     private lateinit var nestedScrollView: NestedScrollView
     private lateinit var mainActivity: MainActivity2
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+
+    override fun navid(): Int {
+        return R.id.navigation_home
+    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -80,60 +85,68 @@ class MainScene : scenes() {
         return binding.root
     }
 
-    fun Reset(query: String? = null){
+    fun Reset(query: String? = null) {
         page = 1
-        videolist = mutableListOf()
+        videolist.clear()
         totalRes = Int.MAX_VALUE
-        fetchData(page, totalRes,query)
+        notfoundtext.visibility = View.GONE // Reset visibility
+        fetchData(page, totalRes, query)
     }
+
 
     fun responseHandle(response: Response<PageData>) {
-        if ((response.body()?.videos?.size ?: 0) == 0) {
-            val t = Throwable("no Videos Found")
-            failureHandle(t)
+        if (response.body()?.videos.isNullOrEmpty()) {
+            failureHandle(Throwable("NO VIDEOS FOUND"))
         } else {
             notfoundtext.visibility = View.GONE
+            videolist.addAll(response.body()?.videos ?: emptyList())
+            // Update RecyclerView
+            val adapter = myAdapter(mainActivity, videolist, false)
+            recycleV.adapter = adapter
+            recycleV.layoutManager = LinearLayoutManager(activity)
+            adapter.setOnItemClickListner(object : myAdapter.onItemClickListner {
+                @OptIn(UnstableApi::class)
+                override fun onItemClick(position: Int) {
+                    mainActivity.strartVideoScene(videolist[position])
+                }
+            })
         }
-        videolist.addAll(response.body()?.videos ?: emptyList())
-        val adapter = myAdapter(mainActivity, videolist,false)
-        recycleV.adapter = adapter
-        recycleV.layoutManager = LinearLayoutManager(activity)
-        adapter.setOnItemClickListner(object : myAdapter.onItemClickListner {
-            @OptIn(UnstableApi::class)
-            override fun onItemClick(position: Int) {
-                mainActivity.strartVideoScene(videolist[position])
-            }
-
-        })
-        totalRes = response.body()?.total_results!! / perPage
+        totalRes = (response.body()?.total_results ?: 0) / perPage
     }
-    private fun fetchData(
-        page: Int,
-        totalpages: Int,
-        query: String? = null
-    ) {
+
+    private var currentCall: Call<PageData>? = null // Reference to the ongoing API call
+
+    private fun fetchData(page: Int, totalpages: Int, query: String? = null) {
         if (page > totalpages) {
             Toast.makeText(activity, "That's all the data.", Toast.LENGTH_SHORT).show()
             loadingPB.visibility = View.GONE
             return
         }
 
-        val call = if (query == null) {
+        // Cancel the previous call if it's still running
+        currentCall?.cancel()
+
+        // Create a new API call based on the query
+        currentCall = if (query == null) {
             RetrofitClient.instance?.api?.getPopular(mainActivity.apiKEY, page, perPage)
         } else {
             RetrofitClient.instance?.api?.getSearched(mainActivity.apiKEY, page, perPage, query)
         }
 
-        call?.enqueue(object : Callback<PageData> {
+        // Enqueue the new call
+        currentCall?.enqueue(object : Callback<PageData> {
             override fun onResponse(call: Call<PageData>, response: Response<PageData>) {
+                if (call.isCanceled) return // Ignore responses from canceled calls
                 responseHandle(response)
             }
 
             override fun onFailure(call: Call<PageData>, t: Throwable) {
+                if (call.isCanceled) return // Ignore failures from canceled calls
                 failureHandle(t)
             }
         })
     }
+
 
     private fun setUpPagination() {
         nestedScrollView.setOnScrollChangeListener(NestedScrollView.OnScrollChangeListener { v, _, scrollY, _, _ ->
@@ -153,6 +166,7 @@ class MainScene : scenes() {
         Toast.makeText(activity, t.message, Toast.LENGTH_SHORT).show()
         notfoundtext.text = t.message
         notfoundtext.visibility = View.VISIBLE
+        recycleV.adapter = myAdapter(mainActivity, listOf(),false)
         loadingPB.visibility = View.GONE
     }
 }

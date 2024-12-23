@@ -30,7 +30,9 @@ class profileView : scenes() {
     private var placet = ""
     private var brancht = ""
     private lateinit var mainActivity2: MainActivity2;
-
+    override fun navid(): Int {
+        return R.id.navigation_myAcc
+    }
 
     @OptIn(UnstableApi::class)
     override fun onCreateView(
@@ -45,6 +47,7 @@ class profileView : scenes() {
         placeL = binding.userPlaceN
         branchL = binding.userBranchN
         binding.SeeSaved.setOnClickListener { mainActivity2.showSavedScene() }
+        binding.SignOutButton.setOnClickListener { mainActivity2.logout() }
         return binding.root
     }
 

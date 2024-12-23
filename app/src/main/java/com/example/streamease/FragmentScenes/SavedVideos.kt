@@ -9,6 +9,7 @@ import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.streamease.MainActivity2
+import com.example.streamease.R
 import com.example.streamease.databinding.FragmentSavedVideosBinding
 import com.example.streamease.helper.myAdapter
 
@@ -18,6 +19,10 @@ class SavedVideos : scenes() {
 
     private lateinit var mainActivity: MainActivity2
     private lateinit var binding: FragmentSavedVideosBinding
+
+    override fun navid(): Int {
+        return R.id.navigation_hisNsavV
+    }
 
     @OptIn(UnstableApi::class)
     override fun onCreateView(

@@ -7,4 +7,7 @@
     <color name="dark_white">#EEEEEE</color>
     <color name="lighter_black">#222222</color>
     <color name="Dark_grey">#555555</color>
+    <color name="red">#EE0000</color>
+    <color name="blue">#0000EE</color>
+    <color name="green">#00EE00</color>
 </resources>

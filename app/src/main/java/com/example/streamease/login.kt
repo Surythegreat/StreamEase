@@ -33,6 +33,7 @@ class login : AppCompatActivity() {
                         Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show()
                         val intent = Intent(this, MainActivity2::class.java)
                         startActivity(intent)
+                        finish()
                     } else {
                         // Show a detailed error for invalid credentials
                         binding.loginPassword.error = "Invalid email or password"
@@ -50,12 +51,7 @@ class login : AppCompatActivity() {
 
     }
 
-    /**
-     * Validate the user input fields.
-     * @param email: User's email
-     * @param password: User's password
-     * @return Boolean indicating if input is valid
-     */
+
     private fun validateInput(email: String, password: String): Boolean {
         var isValid = true
 
@@ -83,6 +79,7 @@ class login : AppCompatActivity() {
         if (firebaseAuth.currentUser!=null){
             val intent = Intent(this, MainActivity2::class.java)
             startActivity(intent)
+            finish()
         }
     }
 }
