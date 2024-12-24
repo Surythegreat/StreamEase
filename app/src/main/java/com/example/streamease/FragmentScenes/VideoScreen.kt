@@ -98,6 +98,7 @@ class VideoScreen : scenes() {
         photosLayout = binding.photos
         playerView = binding.videoView
         qualityButton = playerView.findViewById(R.id.quality_button)
+        qualityButton = playerView.findViewById(R.id.quality_button)
         titleTextView = binding.titleofplayer
         trackSelector = DefaultTrackSelector(activity as MainActivity2)
         player =
@@ -375,6 +376,9 @@ class VideoScreen : scenes() {
             }
 
             Min_url = arguments?.getString(MainActivity2.KEY_MIN_video)
+            if ((activity as MainActivity2).miniplayerurl ==Min_url && isMiniPlayerActive==true){
+                return
+            }
             val uri = Uri.parse(Min_url)
             val mediaItem = MediaItem.fromUri(uri)
 
@@ -394,7 +398,7 @@ class VideoScreen : scenes() {
             player?.prepare()
             player?.playWhenReady = true
         }
-
+    var isMiniPlayerActive:Boolean=false
     private fun sendData() {
         player?.let {
             Min_url.let { it1 ->
@@ -406,6 +410,7 @@ class VideoScreen : scenes() {
                 }
             }
         }
+        isMiniPlayerActive=true
         player?.pause()
         playerView.player = null
     }
@@ -536,6 +541,7 @@ class VideoScreen : scenes() {
                 val screenHeight = displayMetrics.widthPixels
                 height = screenHeight
             }
+            playerView.findViewById<ImageButton>(R.id.miniplayer_button).visibility=View.GONE
             (activity as MainActivity2).onFullscreen()
 
         }
@@ -557,6 +563,8 @@ class VideoScreen : scenes() {
             playerView.layoutParams = playerView.layoutParams.apply {
                 height = 300.dp
             }
+
+            playerView.findViewById<ImageButton>(R.id.miniplayer_button).visibility=View.VISIBLE
             (activity as MainActivity2).offFullscreen()
         }
 

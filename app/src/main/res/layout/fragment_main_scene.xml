@@ -3,7 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/dark_white"
+    android:background="@color/light_green"
+    android:backgroundTint="@color/light_green"
+    android:foregroundTint="@color/light_green"
     tools:context=".FragmentScenes.MainScene">
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"

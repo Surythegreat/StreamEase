@@ -259,11 +259,12 @@ class MainActivity2 : AppCompatActivity() {
     }
 
     private fun closeplayer() {
+        videoScreen.isMiniPlayerActive =false
         videoScreen.setupPlayer()
         binding.floatingPlayer.visibility = View.GONE
         player.stop()
     }
-
+    var miniplayerurl:String?=null
     fun onPlayerLaunch(
         videoUrl: String,
         playbackPosition: Long,
@@ -271,7 +272,7 @@ class MainActivity2 : AppCompatActivity() {
         isAudionly: Boolean
     ) {
 
-
+        miniplayerurl=videoUrl
         // Resume playback in MainActivity's ExoPlayer
         player.setMediaItem(MediaItem.fromUri(videoUrl))
         player.seekTo(playbackPosition)
@@ -393,14 +394,18 @@ class MainActivity2 : AppCompatActivity() {
         currentvideo=video
 
     }
+    var updating:Boolean=false;
     fun SaveCurrentVideo(){
-        if (Savedvideos.any { it.id == currentvideo.id }) {
+        if (Savedvideos.contains(currentvideo)) {
             Log.d("MainActivity", "Video already exists in the saved list.")
             Toast.makeText(this,"Video already exists in the saved list.",Toast.LENGTH_SHORT).show()
 
             return
         }
-
+        if(updating){
+            return
+        }
+        updating=true
         val videoId = currentvideo.id // Assuming `id` is an Int
 
         // Save the video ID as an Int in FirSavedScene.UpdateSaved()ebase
@@ -411,15 +416,17 @@ class MainActivity2 : AppCompatActivity() {
                 Log.d("MainActivity", "Video saved to Firebase successfully!")
                 Toast.makeText(this,"Video Saved",Toast.LENGTH_SHORT).show()
                 // Add the video to the local Savedvideos list
-                if (Savedvideos.any { it.id == currentvideo.id }) {
+                if (Savedvideos.contains(currentvideo)) {
                     Log.d("MainActivity", "Video already exists in the saved list.")
                     Toast.makeText(this,"Video already exists in the saved list.",Toast.LENGTH_SHORT).show()
                 }
                 Savedvideos.add(currentvideo)
                 SavedScene.UpdateSaved()
+                updating=false
             }
             .addOnFailureListener { exception ->
                 Log.e("MainActivity", "Error saving video: ", exception)
+                updating=false
             }
     }
     private fun showFragment(fragment: scenes) {
