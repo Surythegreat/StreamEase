@@ -164,7 +164,7 @@ class MainScene : scenes() {
 
     fun failureHandle(t: Throwable) {
         Toast.makeText(activity, t.message, Toast.LENGTH_SHORT).show()
-        notfoundtext.text = t.message
+        notfoundtext.text = "No Videos Found"
         notfoundtext.visibility = View.VISIBLE
         recycleV.adapter = myAdapter(mainActivity, listOf(),false)
         loadingPB.visibility = View.GONE

@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -53,10 +54,10 @@ class MainActivity2 : AppCompatActivity() {
     // Add this to MainActivity2
     var isInFullscreen: Boolean = false
     private val mainScene = MainScene()       // Home fragment
-    private val videoScreen = VideoScreen() // Video screen fragment
+     val videoScreen = VideoScreen() // Video screen fragment
     private val profileScene = profileView() // Video screen fragment
     private val SavedScene = SavedVideos() // Video screen fragment
-    private var activeFragment: scenes = mainScene
+     var activeFragment: scenes = mainScene
     private var previusScene: scenes? = null
     private lateinit var searchContainer: LinearLayout
     private lateinit var videosearch: SearchView
@@ -142,7 +143,10 @@ class MainActivity2 : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(this, object: OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if(previusScene==null) {
+                if(isInFullscreen){
+                    videoScreen.fullscreenButton.callOnClick()
+                }
+                else if(previusScene==null) {
                     finish()
                 }else{
 

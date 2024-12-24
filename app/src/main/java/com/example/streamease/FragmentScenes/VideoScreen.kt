@@ -6,6 +6,8 @@ import android.content.pm.ActivityInfo
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -18,6 +20,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AlertDialog
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -117,9 +120,13 @@ class VideoScreen : scenes() {
         dislikeButton = binding.dislikeButton
         likeCount = binding.likeCount
         dislikeCount = binding.dislikeCount
-
-
     }
+
+    override fun onResume() {
+        super.onResume()
+        onMovedto()
+    }
+
 
     private var isUpdating = false
         set(value) {
@@ -467,6 +474,7 @@ class VideoScreen : scenes() {
             }
         }
 
+
         @OptIn(UnstableApi::class)
         private fun audioOnlyButtonPressed() {
 
@@ -486,6 +494,7 @@ class VideoScreen : scenes() {
 
         @OptIn(UnstableApi::class)
         private fun changeQuality(index: Int) {
+
             val trackSelectionParameters = TrackSelectionParameters.Builder(activity as MainActivity2)
                 .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, false) // Disable video tracks
                 .build()
@@ -504,20 +513,22 @@ class VideoScreen : scenes() {
             "Quality: ${videoQualities?.get(index) ?: "N/A"}".also { qualityButton.text = it }
         }
 
+        lateinit var fullscreenButton:ImageView
+
         private fun setupFullscreenHandler() {
-            val fullscreenButton = playerView.findViewById<ImageView>(R.id.exo_fullscreen_icon)
+            fullscreenButton = playerView.findViewById<ImageView>(R.id.exo_fullscreen_icon)
             val collapsingToolbar: CollapsingToolbarLayout = binding.collapsingToolbar
-            var isFullscreen = false
+            WindowCompat.setDecorFitsSystemWindows((activity as MainActivity2).window, false)
 
             fullscreenButton.setOnClickListener {
+                Log.d("fullscreenbutton", (activity as MainActivity2).isInFullscreen.toString())
                 val windowInsetsController = WindowCompat.getInsetsController((activity as MainActivity2).window, (activity as MainActivity2).window.decorView)
-                if (isFullscreen) {
+                if ((activity as MainActivity2).isInFullscreen) {
                     exitFullscreen(windowInsetsController, collapsingToolbar, fullscreenButton)
                 } else {
                     enterFullscreen(windowInsetsController, collapsingToolbar, fullscreenButton)
                 }
-                isFullscreen = !isFullscreen
-            }
+               }
         }
 
         private fun enterFullscreen(
@@ -534,6 +545,10 @@ class VideoScreen : scenes() {
             toolbar.layoutParams = (toolbar.layoutParams as AppBarLayout.LayoutParams).apply {
                 scrollFlags = 0
             }
+            val params = binding.appBarLayout.layoutParams as CoordinatorLayout.LayoutParams
+            params.behavior = null
+            binding.appBarLayout.layoutParams = params
+
             (activity as MainActivity2).requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
             playerView.layoutParams = playerView.layoutParams.apply {
                 width = ViewGroup.LayoutParams.MATCH_PARENT
@@ -546,7 +561,7 @@ class VideoScreen : scenes() {
 
         }
 
-        private fun exitFullscreen(
+        fun exitFullscreen(
             controller: WindowInsetsControllerCompat,
             toolbar: CollapsingToolbarLayout,
             button: ImageView
@@ -560,6 +575,10 @@ class VideoScreen : scenes() {
                     AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or AppBarLayout.LayoutParams.SCROLL_FLAG_EXIT_UNTIL_COLLAPSED
             }
             (activity as MainActivity2).requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            val params = binding.appBarLayout.layoutParams as CoordinatorLayout.LayoutParams
+            params.behavior = AppBarLayout.Behavior()
+            binding.appBarLayout.layoutParams = params
+
             playerView.layoutParams = playerView.layoutParams.apply {
                 height = 300.dp
             }
@@ -585,8 +604,7 @@ class VideoScreen : scenes() {
             }
         }
 
-
-        override fun onDestroy() {
+    override fun onDestroy() {
             super.onDestroy()
 
             player?.release()

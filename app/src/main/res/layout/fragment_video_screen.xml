@@ -20,6 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
+
             app:contentScrim="@color/light_black">
 
             <!-- PlayerView -->
@@ -69,15 +70,7 @@
                 android:paddingBottom="@dimen/general_pading" />
 
             <!-- Previews Section -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/previws"
-                android:textSize="@dimen/smal_title_Size"
-                android:textColor="@color/dark_white"
-                android:fontFamily="@font/roboto_medium"
-                android:paddingBottom="@dimen/general_pading"
-                android:textStyle="bold" />
+
 
             <!-- Like and Dislike Buttons -->
             <LinearLayout
@@ -146,7 +139,15 @@
                 android:layout_width="match_parent"
                 android:visibility="gone"
                 android:layout_height="wrap_content" />
-
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/previws"
+                    android:textSize="@dimen/smal_title_Size"
+                    android:textColor="@color/dark_white"
+                    android:fontFamily="@font/roboto_medium"
+                    android:paddingBottom="@dimen/general_pading"
+                    android:textStyle="bold" />
 
             <HorizontalScrollView
                 android:layout_width="match_parent"
