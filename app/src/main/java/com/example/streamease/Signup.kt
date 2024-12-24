@@ -8,7 +8,9 @@ import android.text.TextWatcher
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.streamease.databinding.ActivitySignupBinding
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.firestore
 
 class Signup : AppCompatActivity() {
 
@@ -60,16 +62,32 @@ class Signup : AppCompatActivity() {
             }
             firebaseauth.createUserWithEmailAndPassword(email,password).addOnCompleteListener{
                 if(it.isSuccessful){
-                    val intent = Intent(this,login::class.java)
-                    startActivity(intent)
-                }else{
+                    val usermap = hashMapOf(
+                        "Name" to binding.signupName.text.toString(),
+                        "Place" to binding.signupPlace.text.toString(),
+                        "Branch" to binding.signupBranch.text.toString()
+                    )
+                    FirebaseAuth.getInstance().currentUser?.let { it1 ->
+                        Firebase.firestore.collection("User").document(it1.uid).set(usermap)
+                            .addOnSuccessListener {
+                                val intent = Intent(this, login::class.java)
+                                startActivity(intent)
+                                Toast.makeText(this, "Sign-Up Successful!", Toast.LENGTH_SHORT).show()
+
+                            }
+                            .addOnFailureListener{
+                                Toast.makeText(this, "Sign-Up Failed!", Toast.LENGTH_SHORT).show()
+
+                            }
+
+                    }
+                    }else{
                     Toast.makeText(this, it.exception.toString(), Toast.LENGTH_SHORT).show()
 
                 }
             }
             // Perform sign-up logic here
-            Toast.makeText(this, "Sign-Up Successful!", Toast.LENGTH_SHORT).show()
-        }
+            }
     }
 
     // Update Password Strength
