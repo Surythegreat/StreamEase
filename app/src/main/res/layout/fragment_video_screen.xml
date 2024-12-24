@@ -49,7 +49,11 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="@dimen/general_pading">
-
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:orientation="vertical"
+                android:id="@+id/Details_container"
+                android:layout_height="wrap_content">
             <!-- Title TextView -->
             <TextView
                 android:id="@+id/titleofplayer"
@@ -132,6 +136,7 @@
                         android:textSize="18sp"
                         android:textColor="@color/dark_white" />
                 </LinearLayout>
+
             </LinearLayout>
 
             <ProgressBar
@@ -164,7 +169,29 @@
                 android:fontFamily="@font/roboto_medium"
                 android:paddingBottom="@dimen/general_pading"
                 android:textStyle="bold"/>
-
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="2dp"
+                android:orientation="vertical"
+                android:background="@color/Dark_grey">
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/light_black"
+                android:id="@+id/QueryEdit"
+                android:fontFamily="@font/roboto_medium"
+                android:theme="@style/Base.Theme.StreamEase"
+                android:hint="ENTER VIDEO NAME TO PLAY"/>
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/Play_button"
+                android:text="PLAY"
+                android:fontFamily="@font/roboto_medium"
+                android:backgroundTint="@color/light_black"/>
+            </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

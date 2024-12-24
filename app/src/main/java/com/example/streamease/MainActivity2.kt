@@ -43,7 +43,7 @@ import retrofit2.awaitResponse
 
 @UnstableApi
 class MainActivity2 : AppCompatActivity() {
-    val apiKEY: String = "ugpXVoRZqu4YZYA4pIRXwVYP8Mgyn5O3aZBYkTC2Z5CFn7tgZCz4M5ml"
+
 
     private lateinit var binding: ActivityMain2Binding
     private lateinit var nav: BottomNavigationView
@@ -95,7 +95,6 @@ class MainActivity2 : AppCompatActivity() {
 
         nav = binding.navView
         setupFragments()
-        nav.menu.findItem(R.id.navigation_videoplay).isEnabled = false
         showFragment(mainScene)
         nav.setOnItemSelectedListener {
             if (isInFullscreen) {
@@ -388,10 +387,11 @@ class MainActivity2 : AppCompatActivity() {
         bundle.putStringArrayList(KEY_VIDEO_QUALITY, videoqualitylist)
         bundle.putStringArrayList(KEY_PICTURES, pictures)
         videoScreen.arguments = bundle
+        showFragment(mainScene)
         showFragment(videoScreen)
+
         currentvideo=video
 
-        nav.menu.findItem(R.id.navigation_videoplay).isEnabled = true
     }
     fun SaveCurrentVideo(){
         if (Savedvideos.any { it.id == currentvideo.id }) {
@@ -526,6 +526,7 @@ class MainActivity2 : AppCompatActivity() {
 
 
     companion object {
+        const val apiKEY: String = "ugpXVoRZqu4YZYA4pIRXwVYP8Mgyn5O3aZBYkTC2Z5CFn7tgZCz4M5ml"
         const val KEY_VIDEO_LINKS = "Video links"
         const val KEY_VIDEO_IDS = "Video_ID"
         const val KEY_MIN_video = "Video min"

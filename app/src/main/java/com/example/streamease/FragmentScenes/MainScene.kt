@@ -128,9 +128,9 @@ class MainScene : scenes() {
 
         // Create a new API call based on the query
         currentCall = if (query == null) {
-            RetrofitClient.instance?.api?.getPopular(mainActivity.apiKEY, page, perPage)
+            RetrofitClient.instance?.api?.getPopular(MainActivity2.apiKEY, page, perPage)
         } else {
-            RetrofitClient.instance?.api?.getSearched(mainActivity.apiKEY, page, perPage, query)
+            RetrofitClient.instance?.api?.getSearched(MainActivity2.apiKEY, page, perPage, query)
         }
 
         // Enqueue the new call

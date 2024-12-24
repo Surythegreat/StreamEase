@@ -31,14 +31,19 @@ import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.PlayerView
 import com.bumptech.glide.Glide
 import com.example.streamease.MainActivity2
+import com.example.streamease.Models.PageData
 import com.example.streamease.R
 import com.example.streamease.databinding.FragmentVideoScreenBinding
+import com.example.streamease.helper.RetrofitClient
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.firestore
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 
 @UnstableApi
@@ -282,47 +287,88 @@ class VideoScreen : scenes() {
 
 
     override fun onMovedto(){
+
+        videoUrls = arguments?.getStringArrayList(MainActivity2.KEY_VIDEO_LINKS)
+        videoQualities = arguments?.getStringArrayList(MainActivity2.KEY_VIDEO_QUALITY)
+
+        if(videoUrls.isNullOrEmpty()){
+            binding.appBarLayout.visibility = View.GONE
+            binding.DetailsContainer.visibility = View.GONE
+        }
+        else{
+            binding.appBarLayout.visibility = View.VISIBLE
+            binding.DetailsContainer.visibility = View.VISIBLE
+        }
+
             setupPlayer()
             setupVideoTitle()
             setupQualitySelector()
             setupPreviewImages()
+            setupLikeDislike()
+            setupSearchVid()
 
-            val videoId = arguments?.getInt(MainActivity2.KEY_VIDEO_IDS)
-            if (videoId != null) {
-                fetchVideoData(videoId)
-            }
-
-            likeButton.setOnClickListener {
-                if (videoId != null) {
-                    updateLikeDislike(videoId, "likes")
-                } else {
-                    Toast.makeText(context, "Invalid video ID", Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            dislikeButton.setOnClickListener {
-                if (videoId != null) {
-                    updateLikeDislike(videoId, "dislikes")
-                } else {
-                    Toast.makeText(context, "Invalid video ID", Toast.LENGTH_SHORT).show()
-                }
-            }
     }
 
-        @OptIn(UnstableApi::class)
+    private fun setupSearchVid() {
+        binding.PlayButton.setOnClickListener {
+            Log.d("searchVid", binding.QueryEdit.text.toString())
+            RetrofitClient.instance?.api?.getSearched(MainActivity2.apiKEY,1,1,binding.QueryEdit.text.toString())
+                ?.enqueue(object :Callback<PageData>{
+                    override fun onResponse(p0: Call<PageData>, p1: Response<PageData>) {
+                        if(p1.body()?.videos.isNullOrEmpty()){
+                            Log.d("searchVid", "NO SUCH VIDEOS FOUND")
+                            Toast.makeText(activity as MainActivity2,"NO SUCH VIDEOS FOUND",Toast.LENGTH_SHORT).show()
+                        }
+                        else{
+                            p1.body()?.videos?.let { it1 ->
+                                (activity as MainActivity2).strartVideoScene(
+                                    it1.first())
+                            }
+                        }
+                    }
+
+                    override fun onFailure(p0: Call<PageData>, p1: Throwable) {
+                        Log.d("searchVid", p1.message.toString())
+                        Toast.makeText(activity as MainActivity2,p1.message.toString(),Toast.LENGTH_SHORT).show()
+                    }
+
+                })
+        }
+    }
+
+    private fun setupLikeDislike() {
+        val videoId = arguments?.getInt(MainActivity2.KEY_VIDEO_IDS)
+        if (videoId != null) {
+            fetchVideoData(videoId)
+        }
+
+        likeButton.setOnClickListener {
+            if (videoId != null) {
+                updateLikeDislike(videoId, "likes")
+            } else {
+                Toast.makeText(context, "Invalid video ID", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        dislikeButton.setOnClickListener {
+            if (videoId != null) {
+                updateLikeDislike(videoId, "dislikes")
+            } else {
+                Toast.makeText(context, "Invalid video ID", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    @OptIn(UnstableApi::class)
         fun setupPlayer() {
 
 
-
-            // Get video URLs and qualities
-            videoUrls = arguments?.getStringArrayList(MainActivity2.KEY_VIDEO_LINKS)
-            videoQualities = arguments?.getStringArrayList(MainActivity2.KEY_VIDEO_QUALITY)
-            Log.d("main", videoUrls?.size.toString())
 
             if (videoUrls.isNullOrEmpty()) {
                 Log.e("VideoScreen", "No video URLs provided")
                 return // Exit the method early if no videos are available
             }
+
             Min_url = arguments?.getString(MainActivity2.KEY_MIN_video)
             val uri = Uri.parse(Min_url)
             val mediaItem = MediaItem.fromUri(uri)
