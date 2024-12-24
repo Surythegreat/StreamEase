@@ -2,85 +2,107 @@
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_width="match_parent">
+    android:background="@color/Dark_grey">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@color/Dark_grey"
         android:padding="20dp"
-        tools:context=".UserProfile">
+        android:gravity="center_horizontal"
+        android:background="@drawable/background_gradient">
 
-        <!-- User Name -->
-        <TextView
-            android:id="@+id/user_nameN"
+        <!-- Profile Section -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:fontFamily="@font/roboto_medium"
-            android:gravity="center"
-            android:text="@string/default_name"
-            android:textColor="@color/light_black"
-            android:textSize="32sp"
-            android:textStyle="bold" />
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:elevation="4dp"
+            android:background="@drawable/rounded_card"
+            android:gravity="center">
 
-        <!-- User Place -->
-        <TextView
-            android:id="@+id/user_placeN"
+            <!-- User Name -->
+            <TextView
+                android:id="@+id/user_nameN"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto_medium"
+                android:gravity="center"
+                android:text="@string/default_name"
+                android:textColor="@color/white"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <!-- User Place -->
+            <TextView
+                android:id="@+id/user_placeN"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto_medium"
+                android:gravity="center"
+                android:text="@string/default_place"
+                android:textColor="@color/light_grey"
+                android:textSize="18sp"
+                android:layout_marginTop="4dp" />
+
+            <!-- User Branch -->
+            <TextView
+                android:id="@+id/user_branchN"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto_medium"
+                android:gravity="center"
+                android:text="@string/default_branch"
+                android:textColor="@color/light_grey"
+                android:textSize="18sp"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+        <!-- Button Section -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:text="@string/default_place"
-            android:textColor="@color/lighter_black"
-            android:textSize="28sp"
-            android:fontFamily="@font/roboto_medium"
-            android:gravity="center" />
+            android:orientation="vertical"
+            android:elevation="4dp"
+            android:layout_weight="5"
+            android:layout_marginTop="20dp"
+            android:gravity="center_horizontal"
+            android:padding="10dp">
 
-        <!-- User Branch -->
-        <TextView
-            android:id="@+id/user_branchN"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            android:text="@string/default_branch"
-            android:textColor="@color/lighter_black"
-            android:textSize="28sp"
-            android:fontFamily="@font/roboto_medium"
-            android:gravity="center" />
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/edit_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_button"
+                android:text="@string/edit_details"
+                android:textColor="@color/white"
+                android:fontFamily="@font/roboto_medium"
+                android:textSize="16sp"
+                android:layout_marginBottom="10dp" />
 
-        <!-- Edit Details Button -->
-        <Button
-            android:id="@+id/edit_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:backgroundTint="@color/light_black"
-            android:text="@string/edit_details"
-            android:textColor="@color/dark_white"
-            android:fontFamily="@font/roboto_medium"
-            android:textSize="16sp" />
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/See_saved"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_button_secondary"
+                android:text="@string/see_saved_videos"
+                android:textColor="@color/white"
+                android:fontFamily="@font/roboto_medium"
+                android:textSize="16sp"
+                android:layout_marginBottom="10dp" />
 
-        <Button
-            android:id="@+id/See_saved"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:backgroundTint="@color/lighter_black"
-            android:text="@string/see_saved_videos"
-            android:textColor="@color/dark_white"
-            android:fontFamily="@font/roboto_medium"
-            android:textSize="16sp" />
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/SignOutButton"
-            android:text="@string/sign_out"
-            android:layout_gravity="center"
-            android:fontFamily="@font/roboto_medium"
-            android:textColor="@color/dark_white"
-            android:backgroundTint="@color/red"/>
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/SignOutButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_button_red"
+                android:text="@string/sign_out"
+                android:textColor="@color/white"
+                android:fontFamily="@font/roboto_medium"
+                android:textSize="16sp" />
+        </LinearLayout>
 
     </LinearLayout>
 </FrameLayout>

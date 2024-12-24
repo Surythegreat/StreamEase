@@ -12,6 +12,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:id="@+id/topView"
+        android:layout_marginTop="@dimen/general_margin"
         android:layout_height="wrap_content">
         <ImageView
             android:layout_width="223dp"

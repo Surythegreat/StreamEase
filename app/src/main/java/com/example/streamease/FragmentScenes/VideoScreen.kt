@@ -277,9 +277,14 @@ class VideoScreen : scenes() {
                 val currentAction = r.getString("action")
                 if(currentAction=="likes"){
                     likeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.blue))
+                    dislikeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.dark_white))
                 }
-                if(currentAction == "dislikes"){
+                else if(currentAction == "dislikes"){
                     dislikeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.red))
+                    likeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.dark_white))
+                }else{
+                    dislikeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.dark_white))
+                    likeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.dark_white))
                 }
             }
         }
