@@ -1,8 +1,7 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources >
     <!-- Base application theme. -->
     <style name="Base.Theme.StreamEase" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
-        <item name="android:windowBackground">@color/light_black</item>
          <item name="colorPrimary">@color/lighter_black</item>
         <item name="android:editTextColor">@color/dark_white</item>
         <item name="android:textColorHint">@color/darker_white</item>

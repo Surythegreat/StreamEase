@@ -1,4 +1,4 @@
-package com.example.streamease.FragmentScenes
+package com.example.streamease.fragmentscenes
 
 import android.os.Bundle
 
@@ -11,11 +11,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.streamease.MainActivity2
 import com.example.streamease.R
 import com.example.streamease.databinding.FragmentSavedVideosBinding
-import com.example.streamease.helper.myAdapter
+import com.example.streamease.helper.MyAdapter
 
 
 @UnstableApi
-class SavedVideos : scenes() {
+class SavedVideos : Scenes() {
 
     private lateinit var mainActivity: MainActivity2
     private lateinit var binding: FragmentSavedVideosBinding
@@ -35,25 +35,25 @@ class SavedVideos : scenes() {
         return binding.root
     }
 
-    fun UpdateSaved() {
-        if(mainActivity.Savedvideos.size==0){
+    fun updateSaved() {
+        if(mainActivity.savedvideos.size==0){
             binding.noVideo.visibility=View.VISIBLE
-            binding.recycleview.adapter = myAdapter(mainActivity, listOf(), true)
+            binding.recycleview.adapter = MyAdapter(mainActivity, listOf(), true)
         }else {
             binding.noVideo.visibility = View.GONE
 
-            val adapter = myAdapter(mainActivity, mainActivity.Savedvideos, true)
-            adapter.setOnItemcloseClickListner(object : myAdapter.onItemClickListner {
+            val adapter = MyAdapter(mainActivity, mainActivity.savedvideos, true)
+            adapter.setOnItemcloseClickListner(object : MyAdapter.OnItemClickListner {
                 override fun onItemClick(position: Int) {
                     mainActivity.removeSavedVideo(position)
                 }
             })
             binding.recycleview.adapter = adapter
             binding.recycleview.layoutManager = LinearLayoutManager(activity)
-            adapter.setOnItemClickListner(object : myAdapter.onItemClickListner {
+            adapter.setOnItemClickListner(object : MyAdapter.OnItemClickListner {
                 @OptIn(UnstableApi::class)
                 override fun onItemClick(position: Int) {
-                    mainActivity.strartVideoScene(mainActivity.Savedvideos[position])
+                    mainActivity.strartVideoScene(mainActivity.savedvideos[position])
                 }
 
             })

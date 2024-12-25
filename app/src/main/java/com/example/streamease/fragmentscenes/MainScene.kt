@@ -1,4 +1,4 @@
-package com.example.streamease.FragmentScenes
+package com.example.streamease.fragmentscenes
 
 import android.content.Context
 import android.os.Bundle
@@ -15,19 +15,19 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.streamease.MainActivity2
-import com.example.streamease.Models.PageData
-import com.example.streamease.Models.Video
+import com.example.streamease.models.PageData
+import com.example.streamease.models.Video
 import com.example.streamease.R
 import com.example.streamease.databinding.FragmentMainSceneBinding
 import com.example.streamease.helper.RetrofitClient
-import com.example.streamease.helper.myAdapter
+import com.example.streamease.helper.MyAdapter
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 
 @UnstableApi
-class MainScene : scenes() {
+class MainScene : Scenes() {
 
 
     private lateinit var binding: FragmentMainSceneBinding
@@ -71,7 +71,7 @@ class MainScene : scenes() {
             swipeRefreshLayout.isRefreshing = true
 
             // Reset the data and refresh
-            Reset()
+            reset()
 
             // Stop the refreshing animation after data is loaded
             swipeRefreshLayout.postDelayed({
@@ -85,7 +85,7 @@ class MainScene : scenes() {
         return binding.root
     }
 
-    fun Reset(query: String? = null) {
+    fun reset(query: String? = null) {
         page = 1
         videolist.clear()
         totalRes = Int.MAX_VALUE
@@ -101,10 +101,10 @@ class MainScene : scenes() {
             notfoundtext.visibility = View.GONE
             videolist.addAll(response.body()?.videos ?: emptyList())
             // Update RecyclerView
-            val adapter = myAdapter(mainActivity, videolist, false)
+            val adapter = MyAdapter(mainActivity, videolist, false)
             recycleV.adapter = adapter
             recycleV.layoutManager = LinearLayoutManager(activity)
-            adapter.setOnItemClickListner(object : myAdapter.onItemClickListner {
+            adapter.setOnItemClickListner(object : MyAdapter.OnItemClickListner {
                 @OptIn(UnstableApi::class)
                 override fun onItemClick(position: Int) {
                     mainActivity.strartVideoScene(videolist[position])
@@ -128,9 +128,9 @@ class MainScene : scenes() {
 
         // Create a new API call based on the query
         currentCall = if (query == null) {
-            RetrofitClient.instance?.api?.getPopular(MainActivity2.apiKEY, page, perPage)
+            RetrofitClient.instance?.api?.getPopular(MainActivity2.APIKEY, page, perPage)
         } else {
-            RetrofitClient.instance?.api?.getSearched(MainActivity2.apiKEY, page, perPage, query)
+            RetrofitClient.instance?.api?.getSearched(MainActivity2.APIKEY, page, perPage, query)
         }
 
         // Enqueue the new call
@@ -164,9 +164,9 @@ class MainScene : scenes() {
 
     fun failureHandle(t: Throwable) {
         Toast.makeText(activity, t.message, Toast.LENGTH_SHORT).show()
-        notfoundtext.text = "No Videos Found"
+        "No Videos Found".also { notfoundtext.text = it }
         notfoundtext.visibility = View.VISIBLE
-        recycleV.adapter = myAdapter(mainActivity, listOf(),false)
+        recycleV.adapter = MyAdapter(mainActivity, listOf(),false)
         loadingPB.visibility = View.GONE
     }
 }

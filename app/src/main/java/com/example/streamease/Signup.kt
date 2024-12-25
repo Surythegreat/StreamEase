@@ -24,7 +24,7 @@ class Signup : AppCompatActivity() {
         setContentView(binding.root)
 
         firebaseauth=FirebaseAuth.getInstance()
-        binding.loginRedirectText.setOnClickListener { val intent = Intent(this,login::class.java)
+        binding.loginRedirectText.setOnClickListener { val intent = Intent(this,Login::class.java)
             startActivity(intent) }
         // Password Strength Checker
         binding.signupPassword.addTextChangedListener(object : TextWatcher {
@@ -70,7 +70,7 @@ class Signup : AppCompatActivity() {
                     FirebaseAuth.getInstance().currentUser?.let { it1 ->
                         Firebase.firestore.collection("User").document(it1.uid).set(usermap)
                             .addOnSuccessListener {
-                                val intent = Intent(this, login::class.java)
+                                val intent = Intent(this, Login::class.java)
                                 startActivity(intent)
                                 Toast.makeText(this, "Sign-Up Successful!", Toast.LENGTH_SHORT).show()
 

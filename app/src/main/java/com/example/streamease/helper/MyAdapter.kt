@@ -1,7 +1,6 @@
 package com.example.streamease.helper
 
 import android.app.Activity
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,44 +9,42 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.bumptech.glide.Glide
-import com.example.streamease.Models.Video
+import com.example.streamease.models.Video
 import com.example.streamease.R
 import com.google.android.material.imageview.ShapeableImageView
 
 
-class myAdapter(val context:Activity, val arrayList: List<Video>?,val issaved:Boolean):
-    Adapter<myAdapter.MyviewHolder>() {
-    private lateinit var myListner: onItemClickListner
-    private var closeListner: onItemClickListner?=null
-    interface onItemClickListner{
+class MyAdapter(private val context:Activity, private val arrayList: List<Video>?, private val issaved:Boolean):
+    Adapter<MyAdapter.MyviewHolder>() {
+    private lateinit var myListner: OnItemClickListner
+    private var closeListner: OnItemClickListner?=null
+    interface OnItemClickListner{
         fun onItemClick(position: Int)
     }
-    fun setOnItemClickListner(Listner: onItemClickListner){
-        myListner = Listner
+    fun setOnItemClickListner(listner: OnItemClickListner){
+        myListner = listner
     }
-    fun setOnItemcloseClickListner(Listner: onItemClickListner){
-        closeListner = Listner
+    fun setOnItemcloseClickListner(listner: OnItemClickListner){
+        closeListner = listner
     }
 
 
-    class MyviewHolder(private val itemview:View, Listner: onItemClickListner,val issaved: Boolean,listener2:onItemClickListner?):ViewHolder(itemview) {
+    class MyviewHolder(private val itemview:View, listner: OnItemClickListner, private val issaved: Boolean, listener2:OnItemClickListner?):ViewHolder(itemview) {
         var image:ShapeableImageView
         var titletex:TextView
-        var Durationtex:TextView
+        var durationtex:TextView
         init {
             itemView.setOnClickListener {
-                Listner.onItemClick(absoluteAdapterPosition)
+                listner.onItemClick(absoluteAdapterPosition)
             }
             image = itemview.findViewById(R.id.thumbnailimage)
             titletex = itemview.findViewById(R.id.title)
-            Durationtex = itemview.findViewById(R.id.DESC)
+            durationtex = itemview.findViewById(R.id.DESC)
             if (issaved){
                 val clo = itemview.findViewById<ImageButton>(R.id.close_button)
                  clo.visibility=View.VISIBLE
                 clo.setOnClickListener{
-                    if (listener2 != null) {
-                        listener2.onItemClick(absoluteAdapterPosition)
-                    }
+                    listener2?.onItemClick(absoluteAdapterPosition)
                 }
             }
 
@@ -68,7 +65,7 @@ class myAdapter(val context:Activity, val arrayList: List<Video>?,val issaved:Bo
                 append(s.substring(1))
             }
         }
-        holder.Durationtex.text = buildString {
+        holder.durationtex.text = buildString {
             arrayList?.get(position)?.let { append(it.duration/60)
                                             append(":")
                                             append(it.duration%60)}

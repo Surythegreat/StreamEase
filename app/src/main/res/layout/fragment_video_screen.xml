@@ -91,6 +91,7 @@
 
                     <ImageView
                         android:id="@+id/like_button"
+                        android:contentDescription="Like/Dislike"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:backgroundTint="@color/dark_white"
@@ -100,7 +101,7 @@
                         android:id="@+id/like_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="8dp"
+                        android:layout_marginStart="8dp"
                         android:text="0"
                         android:textSize="18sp"
                         android:textColor="@color/dark_white" />
@@ -114,10 +115,11 @@
                     android:orientation="horizontal"
                     android:gravity="center"
                     android:padding="10dp"
-                    android:layout_marginLeft="20dp">
+                    android:layout_marginStart="20dp">
 
                     <ImageView
                         android:id="@+id/dislike_button"
+                        android:contentDescription="Like/Dislike"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:src="@drawable/ic_dislike" />
@@ -126,7 +128,7 @@
                         android:id="@+id/dislike_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="8dp"
+                        android:layout_marginStart="8dp"
                         android:text="0"
                         android:textSize="18sp"
                         android:textColor="@color/dark_white" />
@@ -163,7 +165,7 @@
             <androidx.appcompat.widget.AppCompatButton
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="SAVE VIDEO"
+                android:text="@string/save_video"
                 android:layout_margin="@dimen/general_margin"
                 android:padding="@dimen/general_pading"
                 android:textSize="@dimen/smal_title_Size"
@@ -180,21 +182,25 @@
                 android:padding="2dp"
                 android:orientation="vertical"
                 android:background="@color/dark_purple">
-            <EditText
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/light_black"
-                android:id="@+id/QueryEdit"
-                android:textSize="20sp"
-                android:lines="1"
-                android:fontFamily="@font/roboto_medium"
-                android:theme="@style/Base.Theme.StreamEase"
-                android:hint="ENTER VIDEO NAME TO PLAY"/>
+
+                <EditText
+                    android:autofillHints="name"
+                    android:id="@+id/QueryEdit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/light_black"
+                    android:fontFamily="@font/roboto_medium"
+                    android:hint="@string/enter_video_name_to_play"
+
+                    android:inputType="text"
+                    android:lines="1"
+                    android:textSize="20sp"
+                    android:theme="@style/Base.Theme.StreamEase" />
             <androidx.appcompat.widget.AppCompatButton
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:id="@+id/Play_button"
-                android:text="PLAY"
+                android:text="@string/play"
                 android:fontFamily="@font/roboto_medium"
                 android:textColor="@color/dark_white"
                 android:backgroundTint="@color/light_black"/>

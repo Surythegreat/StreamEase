@@ -10,7 +10,7 @@ import androidx.media3.common.util.UnstableApi
 import com.example.streamease.databinding.ActivityLoginBinding
 import com.google.firebase.auth.FirebaseAuth
 
-class login : AppCompatActivity() {
+class Login : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
     private lateinit var firebaseAuth: FirebaseAuth
 

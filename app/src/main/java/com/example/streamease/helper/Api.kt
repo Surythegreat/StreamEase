@@ -1,9 +1,8 @@
 package com.example.streamease.helper
 
-import com.example.streamease.Models.PageData
-import com.example.streamease.Models.Video
+import com.example.streamease.models.PageData
+import com.example.streamease.models.Video
 import retrofit2.Call
-import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Path
@@ -28,7 +27,7 @@ interface Api  {
         @Query("per_page")
         perPage:Int,
         @Query("query")
-        Query:String
+        query:String
     ): Call<PageData>
     @GET("videos/{id}")
     fun getVideo(

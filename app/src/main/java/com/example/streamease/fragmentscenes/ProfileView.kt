@@ -1,4 +1,4 @@
-package com.example.streamease.FragmentScenes
+package com.example.streamease.fragmentscenes
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -15,7 +15,7 @@ import com.example.streamease.R
 import com.example.streamease.databinding.FragmentProfileViewBinding
 
 @UnstableApi
-class profileView : scenes() {
+class ProfileView : Scenes() {
     private lateinit var binding: FragmentProfileViewBinding
     private lateinit var profileeditDialog: AlertDialog
     private lateinit var name: TextView
@@ -25,11 +25,11 @@ class profileView : scenes() {
     private lateinit var nameL: TextView
     private lateinit var placeL: TextView
     private lateinit var branchL: TextView
-    private lateinit var SubmitButton: Button
+    private lateinit var submitButton: Button
     private var namet = ""
     private var placet = ""
     private var brancht = ""
-    private lateinit var mainActivity2: MainActivity2;
+    private lateinit var mainActivity2: MainActivity2
     override fun navid(): Int {
         return R.id.navigation_myAcc
     }
@@ -41,8 +41,8 @@ class profileView : scenes() {
     ): View {
         mainActivity2=activity as MainActivity2
         binding = FragmentProfileViewBinding.inflate(inflater, container, false)
-        SetupProfileEditDialog()
-        UpdateLocalData()
+        setupProfileEditDialog()
+        updateLocalData()
         nameL = binding.userNameN
         placeL = binding.userPlaceN
         branchL = binding.userBranchN
@@ -51,12 +51,12 @@ class profileView : scenes() {
         return binding.root
     }
 
-    private fun SetupProfileEditDialog() {
+    private fun setupProfileEditDialog() {
         val lay = layoutInflater.inflate(R.layout.edit_details, null)
         name = lay.findViewById(R.id.user_name)
         place = lay.findViewById(R.id.user_place)
         branch = lay.findViewById(R.id.user_branch)
-        SubmitButton = lay.findViewById(R.id.submit_button)
+        submitButton = lay.findViewById(R.id.submit_button)
         profileeditDialog = AlertDialog.Builder(activity as MainActivity2).setView(lay).create()
         binding.editButton.setOnClickListener {
             profileeditDialog.show()
@@ -64,10 +64,10 @@ class profileView : scenes() {
             place.text = placet
             branch.text = brancht
         }
-        SubmitButton.setOnClickListener { UpdateData() }
+        submitButton.setOnClickListener { updateData() }
     }
 
-    private fun UpdateData() {
+    private fun updateData() {
         val namet = name.text.toString()
         val placet = place.text.toString()
         val brancht = branch.text.toString()
@@ -81,7 +81,7 @@ class profileView : scenes() {
             mainActivity2.db.collection("User").document(mainActivity2.userid!!).set(usermap)
                 .addOnSuccessListener {
                     profileeditDialog.dismiss()
-                    UpdateLocalData()
+                    updateLocalData()
                 }
                 .addOnFailureListener {
                     Toast.makeText(activity, "Failure", Toast.LENGTH_SHORT).show()
@@ -89,10 +89,10 @@ class profileView : scenes() {
         }
     }
 
-    private fun UpdateLocalData() {
+    private fun updateLocalData() {
         if (mainActivity2.userid != null) {
             mainActivity2.db.collection("User").document(mainActivity2.userid!!).get()
-                .addOnSuccessListener {
+                .addOnSuccessListener { it ->
                     if (it != null) {
                         namet = it.data?.get("Name")?.toString()?:""
                         placet = it.data?.get("Place")?.toString()?:""

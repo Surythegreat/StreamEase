@@ -1,4 +1,4 @@
-package com.example.streamease.Models
+package com.example.streamease.models
 
 data class PageData(
     val page: Int,

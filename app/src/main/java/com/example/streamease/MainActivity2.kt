@@ -15,7 +15,6 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -24,12 +23,12 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.PlayerView
-import com.example.streamease.FragmentScenes.MainScene
-import com.example.streamease.FragmentScenes.SavedVideos
-import com.example.streamease.FragmentScenes.VideoScreen
-import com.example.streamease.FragmentScenes.profileView
-import com.example.streamease.FragmentScenes.scenes
-import com.example.streamease.Models.Video
+import com.example.streamease.fragmentscenes.MainScene
+import com.example.streamease.fragmentscenes.SavedVideos
+import com.example.streamease.fragmentscenes.VideoScreen
+import com.example.streamease.fragmentscenes.ProfileView
+import com.example.streamease.fragmentscenes.Scenes
+import com.example.streamease.models.Video
 import com.example.streamease.databinding.ActivityMain2Binding
 import com.example.streamease.helper.RetrofitClient
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -55,10 +54,10 @@ class MainActivity2 : AppCompatActivity() {
     var isInFullscreen: Boolean = false
     private val mainScene = MainScene()       // Home fragment
      val videoScreen = VideoScreen() // Video screen fragment
-    private val profileScene = profileView() // Video screen fragment
-    private val SavedScene = SavedVideos() // Video screen fragment
-     var activeFragment: scenes = mainScene
-    private var previusScene: scenes? = null
+    private val profileScene = ProfileView() // Video screen fragment
+    private val savedScene = SavedVideos() // Video screen fragment
+     private var activeFragment: Scenes = mainScene
+    private var previusScene: Scenes? = null
     private lateinit var searchContainer: LinearLayout
     private lateinit var videosearch: SearchView
     private lateinit var cancelButton: TextView
@@ -67,7 +66,7 @@ class MainActivity2 : AppCompatActivity() {
     private lateinit var someDraggableView: DraggableView<PlayerView>
     private lateinit var player: ExoPlayer
     private lateinit var trackSelector: DefaultTrackSelector
-    lateinit var Savedvideos:MutableList<Video>
+    lateinit var savedvideos:MutableList<Video>
     private lateinit var currentvideo:Video
 
     val userid = FirebaseAuth.getInstance().currentUser?.uid
@@ -86,13 +85,13 @@ class MainActivity2 : AppCompatActivity() {
         cancelButton = binding.cancelButton
         touchInterceptor = binding.touchInterceptor
         blurryView = binding.blurryView
-        Savedvideos = mutableListOf()
+        savedvideos = mutableListOf()
         // Initialize ExoPlayer
         trackSelector = DefaultTrackSelector(this)
         player = ExoPlayer.Builder(this).setTrackSelector(trackSelector).build()
 
         // Setup floating player (UI)
-        SetupFloatingPlayer()
+        setupFloatingPlayer()
 
         nav = binding.navView
         setupFragments()
@@ -118,7 +117,7 @@ class MainActivity2 : AppCompatActivity() {
                     showFragment(profileScene)
                 }
                 R.id.navigation_hisNsavV -> {
-                    showFragment(SavedScene)
+                    showFragment(savedScene)
                 }
             }
             true
@@ -170,8 +169,8 @@ class MainActivity2 : AppCompatActivity() {
                                         val video = getVideoById(videoId)
                                         if (video != null) {
                                             Log.d("MainActivity", "Fetched video: ${video.id}")
-                                            Savedvideos+=video
-                                            SavedScene.UpdateSaved()
+                                            savedvideos+=video
+                                            savedScene.updateSaved()
 
                                         }
 
@@ -180,7 +179,7 @@ class MainActivity2 : AppCompatActivity() {
                             }
 
                     }
-                    SavedScene.UpdateSaved()
+                    savedScene.updateSaved()
                 }
         }
     }
@@ -190,7 +189,7 @@ class MainActivity2 : AppCompatActivity() {
 
 
         return try {
-            val res = RetrofitClient.instance?.api?.getVideo(apiKEY, videoId)?.awaitResponse()
+            val res = RetrofitClient.instance?.api?.getVideo(APIKEY, videoId)?.awaitResponse()
             if(res!=null && res.isSuccessful){
                 res.body()
 
@@ -219,11 +218,11 @@ class MainActivity2 : AppCompatActivity() {
     }
 
 
-     fun onLOGOPressed() {
-        SavedScene.UpdateSaved()
+     private fun onLOGOPressed() {
+        savedScene.updateSaved()
         hassearched = false
         showFragment(mainScene)
-        mainScene.Reset()
+        mainScene.reset()
 //        player.stop()
 //        binding.floatingPlayer.visibility = View.GONE
 
@@ -247,7 +246,7 @@ class MainActivity2 : AppCompatActivity() {
         }
     }
 
-    private fun SetupFloatingPlayer() {
+    private fun setupFloatingPlayer() {
         binding.floatingPlayer.visibility = View.GONE
         binding.floatingPlayer.player = player
         val but = binding.floatingPlayer.findViewById<ImageButton>(R.id.close)
@@ -328,7 +327,7 @@ class MainActivity2 : AppCompatActivity() {
 
     private fun onSearched(query: String?) {
         showFragment(mainScene)
-        mainScene.Reset(query)
+        mainScene.reset(query)
         hassearched = true
 
         if (query != null) {
@@ -347,7 +346,7 @@ class MainActivity2 : AppCompatActivity() {
             .add(R.id.Replacable_frame, profileScene, "ProfileScene")
             .commit()
         supportFragmentManager.beginTransaction()
-            .add(R.id.Replacable_frame, SavedScene, "SavedVideoScene")
+            .add(R.id.Replacable_frame, savedScene, "SavedVideoScene")
             .commit()
 
 
@@ -355,7 +354,7 @@ class MainActivity2 : AppCompatActivity() {
             .add(R.id.Replacable_frame, mainScene, "MainScene")
             .hide(videoScreen)
             .hide(profileScene)
-            .hide(SavedScene)
+            .hide(savedScene)
             .commit()
          // MainScene is the default fragment
 
@@ -388,7 +387,7 @@ class MainActivity2 : AppCompatActivity() {
             pictures.add(vid.picture)
         }
         bundle.putStringArrayList(KEY_VIDEO_LINKS, videolinklist)
-        bundle.putString(KEY_MIN_video, minVideoLink)
+        bundle.putString(KEY_MIN_VIDEO, minVideoLink)
         bundle.putStringArrayList(KEY_VIDEO_QUALITY, videoqualitylist)
         bundle.putStringArrayList(KEY_PICTURES, pictures)
         videoScreen.arguments = bundle
@@ -398,9 +397,9 @@ class MainActivity2 : AppCompatActivity() {
         currentvideo=video
 
     }
-    var updating:Boolean=false;
-    fun SaveCurrentVideo(){
-        if (Savedvideos.contains(currentvideo)) {
+    private var updating:Boolean=false
+    fun saveCurrentVideo(){
+        if (savedvideos.contains(currentvideo)) {
             Log.d("MainActivity", "Video already exists in the saved list.")
             Toast.makeText(this,"Video already exists in the saved list.",Toast.LENGTH_SHORT).show()
 
@@ -420,12 +419,12 @@ class MainActivity2 : AppCompatActivity() {
                 Log.d("MainActivity", "Video saved to Firebase successfully!")
                 Toast.makeText(this,"Video Saved",Toast.LENGTH_SHORT).show()
                 // Add the video to the local Savedvideos list
-                if (Savedvideos.contains(currentvideo)) {
+                if (savedvideos.contains(currentvideo)) {
                     Log.d("MainActivity", "Video already exists in the saved list.")
                     Toast.makeText(this,"Video already exists in the saved list.",Toast.LENGTH_SHORT).show()
                 }
-                Savedvideos.add(currentvideo)
-                SavedScene.UpdateSaved()
+                savedvideos.add(currentvideo)
+                savedScene.updateSaved()
                 updating=false
             }
             .addOnFailureListener { exception ->
@@ -433,7 +432,7 @@ class MainActivity2 : AppCompatActivity() {
                 updating=false
             }
     }
-    private fun showFragment(fragment: scenes) {
+    private fun showFragment(fragment: Scenes) {
         try {
             if (fragment == activeFragment) return
 
@@ -504,23 +503,23 @@ class MainActivity2 : AppCompatActivity() {
     }
 
     fun removeSavedVideo(position: Int) {
-        if (position < 0 || position >= Savedvideos.size) {
-            Log.e("MainActivity2", "Invalid position: $position. List size: ${Savedvideos.size}")
+        if (position < 0 || position >= savedvideos.size) {
+            Log.e("MainActivity2", "Invalid position: $position. List size: ${savedvideos.size}")
             return
         }
-        db.collection("User").document(userid!!).collection("SAVED").document(Savedvideos[position].id.toString()).delete()
+        db.collection("User").document(userid!!).collection("SAVED").document(savedvideos[position].id.toString()).delete()
             .addOnSuccessListener {
-                if (position >= Savedvideos.size) {
-                    Log.e("MainActivity2", "Invalid position: $position. List size: ${Savedvideos.size}")
+                if (position >= savedvideos.size) {
+                    Log.e("MainActivity2", "Invalid position: $position. List size: ${savedvideos.size}")
                 }else{
-                Savedvideos.removeAt(position)
-                SavedScene.UpdateSaved()}
+                savedvideos.removeAt(position)
+                savedScene.updateSaved()}
             }
     }
 
 
     fun showSavedScene() {
-        showFragment(SavedScene)
+        showFragment(savedScene)
 
         nav.selectedItemId = R.id.navigation_hisNsavV
     }
@@ -529,7 +528,7 @@ class MainActivity2 : AppCompatActivity() {
         FirebaseAuth.getInstance().signOut()
 
         // Optionally, you can redirect the user to the login screen
-        val intent = Intent(this, login::class.java)
+        val intent = Intent(this, Login::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()
@@ -537,10 +536,10 @@ class MainActivity2 : AppCompatActivity() {
 
 
     companion object {
-        const val apiKEY: String = "ugpXVoRZqu4YZYA4pIRXwVYP8Mgyn5O3aZBYkTC2Z5CFn7tgZCz4M5ml"
+        const val APIKEY: String = "ugpXVoRZqu4YZYA4pIRXwVYP8Mgyn5O3aZBYkTC2Z5CFn7tgZCz4M5ml"
         const val KEY_VIDEO_LINKS = "Video links"
         const val KEY_VIDEO_IDS = "Video_ID"
-        const val KEY_MIN_video = "Video min"
+        const val KEY_MIN_VIDEO = "Video min"
         const val KEY_VIDEO_QUALITY = "video quality"
         const val KEY_PICTURES = "pictures"
     }

@@ -1,4 +1,4 @@
-package com.example.streamease.FragmentScenes
+package com.example.streamease.fragmentscenes
 
 import android.annotation.SuppressLint
 import android.app.ActionBar.LayoutParams
@@ -6,8 +6,6 @@ import android.content.pm.ActivityInfo
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -34,7 +32,7 @@ import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.PlayerView
 import com.bumptech.glide.Glide
 import com.example.streamease.MainActivity2
-import com.example.streamease.Models.PageData
+import com.example.streamease.models.PageData
 import com.example.streamease.R
 import com.example.streamease.databinding.FragmentVideoScreenBinding
 import com.example.streamease.helper.RetrofitClient
@@ -50,10 +48,10 @@ import retrofit2.Response
 
 
 @UnstableApi
-class VideoScreen : scenes() {
+class VideoScreen : Scenes() {
 
-    private var Min_quality: String? = null
-    private var Min_url: String? = null
+    private var minQuality: String? = null
+    private var minUrl: String? = null
     private lateinit var binding: FragmentVideoScreenBinding
     private var player: ExoPlayer? = null
     private lateinit var playerView: PlayerView
@@ -69,7 +67,7 @@ class VideoScreen : scenes() {
     private lateinit var qualityTrackLayout:LinearLayout
     private lateinit var  qualityLayout:View
     private lateinit var photosLayout: LinearLayout
-    val Int.dp: Int
+    private val Int.dp: Int
         get() = (this * resources.displayMetrics.density).toInt()
 
     private lateinit var likeButton: ImageView
@@ -78,7 +76,7 @@ class VideoScreen : scenes() {
     private lateinit var dislikeCount: TextView
     private var likes = 0
     private var dislikes = 0
-    val userId = Firebase.auth.currentUser?.uid
+    private val userId = Firebase.auth.currentUser?.uid
     override fun navid(): Int {
         return R.id.navigation_videoplay
     }
@@ -111,7 +109,7 @@ class VideoScreen : scenes() {
         qualityTrackLayout= qualityLayout.findViewById(R.id.quality_track)
         playerView.findViewById<ImageButton>(R.id.miniplayer_button)
             .setOnClickListener { sendData() }
-        binding.Save.setOnClickListener { (activity as MainActivity2 ).SaveCurrentVideo() }
+        binding.Save.setOnClickListener { (activity as MainActivity2 ).saveCurrentVideo() }
         playerView.player = player
         setupFullscreenHandler()
 
@@ -283,16 +281,19 @@ class VideoScreen : scenes() {
         if (userId != null) {
             videoRef.collection("interactions").document(userId).get().addOnSuccessListener { r->
                 val currentAction = r.getString("action")
-                if(currentAction=="likes"){
-                    likeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.blue))
-                    dislikeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.dark_white))
-                }
-                else if(currentAction == "dislikes"){
-                    dislikeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.red))
-                    likeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.dark_white))
-                }else{
-                    dislikeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.dark_white))
-                    likeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.dark_white))
+                when (currentAction) {
+                    "likes" -> {
+                        likeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.blue))
+                        dislikeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.dark_white))
+                    }
+                    "dislikes" -> {
+                        dislikeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.red))
+                        likeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.dark_white))
+                    }
+                    else -> {
+                        dislikeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.dark_white))
+                        likeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2,R.color.dark_white))
+                    }
                 }
             }
         }
@@ -325,7 +326,7 @@ class VideoScreen : scenes() {
     private fun setupSearchVid() {
         binding.PlayButton.setOnClickListener {
             Log.d("searchVid", binding.QueryEdit.text.toString())
-            RetrofitClient.instance?.api?.getSearched(MainActivity2.apiKEY,1,1,binding.QueryEdit.text.toString())
+            RetrofitClient.instance?.api?.getSearched(MainActivity2.APIKEY,1,1,binding.QueryEdit.text.toString())
                 ?.enqueue(object :Callback<PageData>{
                     override fun onResponse(p0: Call<PageData>, p1: Response<PageData>) {
                         if(p1.body()?.videos.isNullOrEmpty()){
@@ -382,21 +383,21 @@ class VideoScreen : scenes() {
                 return // Exit the method early if no videos are available
             }
 
-            Min_url = arguments?.getString(MainActivity2.KEY_MIN_video)
-            if ((activity as MainActivity2).miniplayerurl ==Min_url && isMiniPlayerActive==true){
+            minUrl = arguments?.getString(MainActivity2.KEY_MIN_VIDEO)
+            if ((activity as MainActivity2).miniplayerurl ==minUrl && isMiniPlayerActive){
                 return
             }
-            val uri = Uri.parse(Min_url)
+            val uri = Uri.parse(minUrl)
             val mediaItem = MediaItem.fromUri(uri)
 
             // Populate media items
             videoUrls?.forEachIndexed { index, url ->
-                if (Min_url == url) {
-                    Min_quality = videoQualities?.get(index)
+                if (minUrl == url) {
+                    minQuality = videoQualities?.get(index)
                 }
-                val uri = Uri.parse(url)
-                val mediaItem = MediaItem.fromUri(uri)
-                mediaItemList.add(mediaItem)
+                val uri1 = Uri.parse(url)
+                val mediaItem1 = MediaItem.fromUri(uri1)
+                mediaItemList.add(mediaItem1)
             }
             playerView.player = player
 
@@ -408,7 +409,7 @@ class VideoScreen : scenes() {
     var isMiniPlayerActive:Boolean=false
     private fun sendData() {
         player?.let {
-            Min_url.let { it1 ->
+            minUrl.let { it1 ->
                 if (it1 != null) {
                     (activity as MainActivity2).onPlayerLaunch(
                         it1,
@@ -439,7 +440,7 @@ class VideoScreen : scenes() {
 
         private fun setupQualitySelector() {
 
-            "Quality: ${Min_quality}".also { qualityButton.text = it }
+            "Quality: $minQuality".also { qualityButton.text = it }
             qualityTrackLayout.removeAllViews()
 
 
@@ -516,7 +517,7 @@ class VideoScreen : scenes() {
         lateinit var fullscreenButton:ImageView
 
         private fun setupFullscreenHandler() {
-            fullscreenButton = playerView.findViewById<ImageView>(R.id.exo_fullscreen_icon)
+            fullscreenButton = playerView.findViewById(R.id.exo_fullscreen_icon)
             val collapsingToolbar: CollapsingToolbarLayout = binding.collapsingToolbar
             WindowCompat.setDecorFitsSystemWindows((activity as MainActivity2).window, false)
 
@@ -561,7 +562,7 @@ class VideoScreen : scenes() {
 
         }
 
-        fun exitFullscreen(
+        private fun exitFullscreen(
             controller: WindowInsetsControllerCompat,
             toolbar: CollapsingToolbarLayout,
             button: ImageView
