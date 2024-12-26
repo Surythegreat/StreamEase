@@ -112,7 +112,7 @@
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/lighter_black"
                 android:textColor="@color/dark_white"
-                android:textSize="@dimen/small_text_size"
+                android:textSize="8sp"
                 android:text=""
                 android:fontFamily="@font/roboto_medium" />
 
