@@ -25,10 +25,8 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-
 @UnstableApi
 class MainScene : Scenes() {
-
 
     private lateinit var binding: FragmentMainSceneBinding
     private var page: Int = 1
@@ -59,28 +57,22 @@ class MainScene : Scenes() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentMainSceneBinding.inflate(inflater,container,false)
+        binding = FragmentMainSceneBinding.inflate(inflater, container, false)
         loadingPB = binding.idPBLoading
         notfoundtext = binding.notfoundtext
         recycleV = binding.recycleview
         nestedScrollView = binding.nestedscrollview
         swipeRefreshLayout = binding.swipeRefreshLayout
 
-        // Setup refresh listener
         swipeRefreshLayout.setOnRefreshListener {
             swipeRefreshLayout.isRefreshing = true
-
-            // Reset the data and refresh
             reset()
-
-            // Stop the refreshing animation after data is loaded
             swipeRefreshLayout.postDelayed({
                 swipeRefreshLayout.isRefreshing = false
-            }, 1500) // Adjust delay based on data loading time
+            }, 1500)
         }
 
-
-        fetchData(page,totalRes)
+        fetchData(page, totalRes)
         setUpPagination()
         return binding.root
     }
@@ -89,10 +81,9 @@ class MainScene : Scenes() {
         page = 1
         videolist.clear()
         totalRes = Int.MAX_VALUE
-        notfoundtext.visibility = View.GONE // Reset visibility
+        notfoundtext.visibility = View.GONE
         fetchData(page, totalRes, query)
     }
-
 
     fun responseHandle(response: Response<PageData>) {
         if (response.body()?.videos.isNullOrEmpty()) {
@@ -100,7 +91,6 @@ class MainScene : Scenes() {
         } else {
             notfoundtext.visibility = View.GONE
             videolist.addAll(response.body()?.videos ?: emptyList())
-            // Update RecyclerView
             val adapter = MyAdapter(mainActivity, videolist, false)
             recycleV.adapter = adapter
             recycleV.layoutManager = LinearLayoutManager(activity)
@@ -114,7 +104,7 @@ class MainScene : Scenes() {
         totalRes = (response.body()?.total_results ?: 0) / perPage
     }
 
-    private var currentCall: Call<PageData>? = null // Reference to the ongoing API call
+    private var currentCall: Call<PageData>? = null
 
     private fun fetchData(page: Int, totalpages: Int, query: String? = null) {
         if (page > totalpages) {
@@ -123,30 +113,26 @@ class MainScene : Scenes() {
             return
         }
 
-        // Cancel the previous call if it's still running
         currentCall?.cancel()
 
-        // Create a new API call based on the query
         currentCall = if (query == null) {
             RetrofitClient.instance?.api?.getPopular(MainActivity2.APIKEY, page, perPage)
         } else {
             RetrofitClient.instance?.api?.getSearched(MainActivity2.APIKEY, page, perPage, query)
         }
 
-        // Enqueue the new call
         currentCall?.enqueue(object : Callback<PageData> {
             override fun onResponse(call: Call<PageData>, response: Response<PageData>) {
-                if (call.isCanceled) return // Ignore responses from canceled calls
+                if (call.isCanceled) return
                 responseHandle(response)
             }
 
             override fun onFailure(call: Call<PageData>, t: Throwable) {
-                if (call.isCanceled) return // Ignore failures from canceled calls
+                if (call.isCanceled) return
                 failureHandle(t)
             }
         })
     }
-
 
     private fun setUpPagination() {
         nestedScrollView.setOnScrollChangeListener(NestedScrollView.OnScrollChangeListener { v, _, scrollY, _, _ ->
@@ -166,7 +152,7 @@ class MainScene : Scenes() {
         Toast.makeText(activity, t.message, Toast.LENGTH_SHORT).show()
         "No Videos Found".also { notfoundtext.text = it }
         notfoundtext.visibility = View.VISIBLE
-        recycleV.adapter = MyAdapter(mainActivity, listOf(),false)
+        recycleV.adapter = MyAdapter(mainActivity, listOf(), false)
         loadingPB.visibility = View.GONE
     }
 }

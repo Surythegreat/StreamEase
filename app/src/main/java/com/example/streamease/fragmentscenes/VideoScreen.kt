@@ -87,7 +87,6 @@ class VideoScreen : Scenes() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentVideoScreenBinding.inflate(inflater, container, false)
-
         return binding.root
     }
 
@@ -95,15 +94,12 @@ class VideoScreen : Scenes() {
     override fun onStart() {
         super.onStart()
 
-        // Inflate the layout for this fragment
         photosLayout = binding.photos
         playerView = binding.videoView
         qualityButton = playerView.findViewById(R.id.quality_button)
-        qualityButton = playerView.findViewById(R.id.quality_button)
         titleTextView = binding.titleofplayer
         trackSelector = DefaultTrackSelector(activity as MainActivity2)
-        player =
-            ExoPlayer.Builder(activity as MainActivity2).setTrackSelector(trackSelector).build()
+        player = ExoPlayer.Builder(activity as MainActivity2).setTrackSelector(trackSelector).build()
 
         qualityLayout = layoutInflater.inflate(R.layout.qualitytrack, null)
         qualityTrackLayout = qualityLayout.findViewById(R.id.quality_track)
@@ -112,7 +108,6 @@ class VideoScreen : Scenes() {
         binding.Save.setOnClickListener { (activity as MainActivity2).saveCurrentVideo() }
         playerView.player = player
         setupFullscreenHandler()
-
 
         likeButton = binding.likeButton
         dislikeButton = binding.dislikeButton
@@ -125,17 +120,11 @@ class VideoScreen : Scenes() {
         onMovedto()
     }
 
-
     private var isUpdating = false
         set(value) {
-            binding.likeDislikeLoading.visibility = if (value) {
-                View.VISIBLE
-            } else {
-                View.GONE
-            }
+            binding.likeDislikeLoading.visibility = if (value) View.VISIBLE else View.GONE
             field = value
-
-        }// Add a flag to prevent multiple updates
+        }
 
     private fun updateLikeDislike(videoId: Int, field: String) {
         if (isUpdating) {
@@ -143,7 +132,7 @@ class VideoScreen : Scenes() {
             return
         }
 
-        isUpdating = true // Lock the update process
+        isUpdating = true
         val videoRef = Firebase.firestore.collection("Videos").document(videoId.toString())
 
         if (userId == null) {
@@ -153,32 +142,19 @@ class VideoScreen : Scenes() {
 
         val interactionRef = videoRef.collection("interactions").document(userId)
 
-        // Check if the document exists
         videoRef.get().addOnSuccessListener { videoDoc ->
             if (!videoDoc.exists()) {
-                // Create the document if it doesn't exist
                 videoRef.set(mapOf("likes" to 0, "dislikes" to 0))
-                    .addOnSuccessListener {
-                        Log.d("updateLike", "Document created successfully.")
-                        performUpdate(videoRef, interactionRef, field)
-                    }
+                    .addOnSuccessListener { performUpdate(videoRef, interactionRef, field) }
                     .addOnFailureListener { e ->
-                        Toast.makeText(
-                            context,
-                            "Failed to create document: ${e.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        Log.d("updateLike", "Failed to create document: ${e.message}")
+                        Toast.makeText(context, "Failed to create document: ${e.message}", Toast.LENGTH_SHORT).show()
                         isUpdating = false
                     }
             } else {
-                // Proceed with the update if the document exists
                 performUpdate(videoRef, interactionRef, field)
             }
         }.addOnFailureListener { e ->
-            Toast.makeText(context, "Error checking document: ${e.message}", Toast.LENGTH_SHORT)
-                .show()
-            Log.d("updateLike", "Error fetching document: ${e.message}")
+            Toast.makeText(context, "Error checking document: ${e.message}", Toast.LENGTH_SHORT).show()
             isUpdating = false
         }
     }
@@ -193,195 +169,117 @@ class VideoScreen : Scenes() {
             val currentAction = interactionDoc.getString("action")
             val isAlreadyPerformed = currentAction == field
 
-            // Firestore transaction to toggle counts atomically
             Firebase.firestore.runTransaction { transaction ->
                 val snapshot = transaction.get(videoRef)
                 val currentFieldCount = snapshot.getLong(field) ?: 0
                 val oppositeFieldCount = snapshot.getLong(oppositeField) ?: 0
 
                 if (isAlreadyPerformed) {
-                    // User is toggling off the current action
                     transaction.update(videoRef, field, currentFieldCount - 1)
                     transaction.delete(interactionRef)
                 } else {
-                    // User is performing a new action
                     transaction.update(videoRef, field, currentFieldCount + 1)
                     if (currentAction == oppositeField) {
-                        // If the user had previously done the opposite action, decrement it
                         transaction.update(videoRef, oppositeField, oppositeFieldCount - 1)
                     }
                     transaction.set(interactionRef, mapOf("action" to field))
                 }
             }.addOnSuccessListener {
-                // Update UI after successful transaction
-                if (isAlreadyPerformed) {
-                    // Toggled off
-                    if (field == "likes") {
-                        likes--
-                        likeButton.setColorFilter(
-                            ContextCompat.getColor(
-                                activity as MainActivity2,
-                                R.color.dark_white
-                            )
-                        )
-                        likeCount.text = likes.toString()
-
-                    } else {
-                        dislikes--
-                        dislikeButton.setColorFilter(
-                            ContextCompat.getColor(
-                                activity as MainActivity2,
-                                R.color.dark_white
-                            )
-                        )
-                        dislikeCount.text = dislikes.toString()
-                    }
-                } else {
-                    // Toggled on
-                    if (field == "likes") {
-                        likes++
-                        likeButton.setColorFilter(
-                            ContextCompat.getColor(
-                                activity as MainActivity2,
-                                R.color.blue
-                            )
-                        )
-                        likeCount.text = likes.toString()
-                        if (currentAction == "dislikes") {
-                            dislikes--
-                            dislikeButton.setColorFilter(
-                                ContextCompat.getColor(
-                                    activity as MainActivity2,
-                                    R.color.dark_white
-                                )
-                            )
-                            dislikeCount.text = dislikes.toString()
-                        }
-                    } else {
-                        dislikes++
-
-                        dislikeButton.setColorFilter(
-                            ContextCompat.getColor(
-                                activity as MainActivity2,
-                                R.color.red
-                            )
-                        )
-                        dislikeCount.text = dislikes.toString()
-                        if (currentAction == "likes") {
-                            likes--
-                            likeButton.setColorFilter(
-                                ContextCompat.getColor(
-                                    activity as MainActivity2,
-                                    R.color.dark_white
-                                )
-                            )
-                            likeCount.text = likes.toString()
-                        }
-                    }
-                }
+                updateUIAfterSuccess(field, currentAction, isAlreadyPerformed)
             }.addOnFailureListener { e ->
-                Toast.makeText(context, "Failed to update $field: ${e.message}", Toast.LENGTH_SHORT)
-                    .show()
-                Log.d("updateLike", "Failed to update video data: ${e.message}")
+                Toast.makeText(context, "Failed to update $field: ${e.message}", Toast.LENGTH_SHORT).show()
             }.addOnCompleteListener {
-                isUpdating = false // Unlock the update process
+                isUpdating = false
             }
         }.addOnFailureListener { e ->
-            Toast.makeText(context, "Error checking interaction: ${e.message}", Toast.LENGTH_SHORT)
-                .show()
-            Log.d("updateLike", "Error fetching interaction: ${e.message}")
+            Toast.makeText(context, "Error checking interaction: ${e.message}", Toast.LENGTH_SHORT).show()
             isUpdating = false
         }
     }
 
-
+    private fun updateUIAfterSuccess(field: String, currentAction: String?, isAlreadyPerformed: Boolean) {
+        if (isAlreadyPerformed) {
+            if (field == "likes") {
+                likes--
+                likeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2, R.color.dark_white))
+                likeCount.text = likes.toString()
+            } else {
+                dislikes--
+                dislikeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2, R.color.dark_white))
+                dislikeCount.text = dislikes.toString()
+            }
+        } else {
+            if (field == "likes") {
+                likes++
+                likeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2, R.color.blue))
+                likeCount.text = likes.toString()
+                if (currentAction == "dislikes") {
+                    dislikes--
+                    dislikeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2, R.color.dark_white))
+                    dislikeCount.text = dislikes.toString()
+                }
+            } else {
+                dislikes++
+                dislikeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2, R.color.red))
+                dislikeCount.text = dislikes.toString()
+                if (currentAction == "likes") {
+                    likes--
+                    likeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2, R.color.dark_white))
+                    likeCount.text = likes.toString()
+                }
+            }
+        }
+    }
     private fun fetchVideoData(videoId: Int) {
         val videoRef = Firebase.firestore.collection("Videos").document(videoId.toString())
 
         videoRef.get()
             .addOnSuccessListener { document ->
-                if (document != null) {
-                    likes = document.getLong("likes")?.toInt() ?: 0
-                    dislikes = document.getLong("dislikes")?.toInt() ?: 0
-
+                document?.let {
+                    likes = it.getLong("likes")?.toInt() ?: 0
+                    dislikes = it.getLong("dislikes")?.toInt() ?: 0
                     likeCount.text = likes.toString()
                     dislikeCount.text = dislikes.toString()
                 }
             }
             .addOnFailureListener { e ->
-                Toast.makeText(
-                    context,
-                    "Failed to load video data: ${e.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
-
+                Toast.makeText(context, "Failed to load video data: ${e.message}", Toast.LENGTH_SHORT).show()
             }
-        if (userId != null) {
-            videoRef.collection("interactions").document(userId).get().addOnSuccessListener { r ->
+
+        userId?.let {
+            videoRef.collection("interactions").document(it).get().addOnSuccessListener { r ->
                 val currentAction = r.getString("action")
-                when (currentAction) {
-                    "likes" -> {
-                        likeButton.setColorFilter(
-                            ContextCompat.getColor(
-                                activity as MainActivity2,
-                                R.color.blue
-                            )
-                        )
-                        dislikeButton.setColorFilter(
-                            ContextCompat.getColor(
-                                activity as MainActivity2,
-                                R.color.dark_white
-                            )
-                        )
-                    }
-
-                    "dislikes" -> {
-                        dislikeButton.setColorFilter(
-                            ContextCompat.getColor(
-                                activity as MainActivity2,
-                                R.color.red
-                            )
-                        )
-                        likeButton.setColorFilter(
-                            ContextCompat.getColor(
-                                activity as MainActivity2,
-                                R.color.dark_white
-                            )
-                        )
-                    }
-
-                    else -> {
-                        dislikeButton.setColorFilter(
-                            ContextCompat.getColor(
-                                activity as MainActivity2,
-                                R.color.dark_white
-                            )
-                        )
-                        likeButton.setColorFilter(
-                            ContextCompat.getColor(
-                                activity as MainActivity2,
-                                R.color.dark_white
-                            )
-                        )
-                    }
-                }
+                updateButtonState(currentAction)
             }
         }
     }
 
+    private fun updateButtonState(currentAction: String?) {
+        val likeColor = ContextCompat.getColor(activity as MainActivity2, R.color.dark_white)
+        val dislikeColor = ContextCompat.getColor(activity as MainActivity2, R.color.dark_white)
+
+        when (currentAction) {
+            "likes" -> {
+                likeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2, R.color.blue))
+                dislikeButton.setColorFilter(dislikeColor)
+            }
+            "dislikes" -> {
+                dislikeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2, R.color.red))
+                likeButton.setColorFilter(likeColor)
+            }
+            else -> {
+                likeButton.setColorFilter(likeColor)
+                dislikeButton.setColorFilter(dislikeColor)
+            }
+        }
+    }
 
     override fun onMovedto() {
-
         videoUrls = arguments?.getStringArrayList(MainActivity2.KEY_VIDEO_LINKS)
         videoQualities = arguments?.getStringArrayList(MainActivity2.KEY_VIDEO_QUALITY)
 
-        if (videoUrls.isNullOrEmpty()) {
-            binding.appBarLayout.visibility = View.GONE
-            binding.DetailsContainer.visibility = View.GONE
-        } else {
-            binding.appBarLayout.visibility = View.VISIBLE
-            binding.DetailsContainer.visibility = View.VISIBLE
-        }
+        binding.appBarLayout.visibility = if (videoUrls.isNullOrEmpty()) View.GONE else View.VISIBLE
+        binding.DetailsContainer.visibility = if (videoUrls.isNullOrEmpty()) View.GONE else View.VISIBLE
 
         setupPlayer()
         setupVideoTitle()
@@ -389,115 +287,77 @@ class VideoScreen : Scenes() {
         setupPreviewImages()
         setupLikeDislike()
         setupSearchVid()
-
     }
 
     private fun setupSearchVid() {
         binding.PlayButton.setOnClickListener {
-            Log.d("searchVid", binding.QueryEdit.text.toString())
+            val query = binding.QueryEdit.text.toString()
             RetrofitClient.instance?.api?.getSearched(
                 MainActivity2.APIKEY,
                 1,
                 1,
-                binding.QueryEdit.text.toString()
-            )
-                ?.enqueue(object : Callback<PageData> {
-                    override fun onResponse(p0: Call<PageData>, p1: Response<PageData>) {
-                        if (p1.body()?.videos.isNullOrEmpty()) {
-                            Log.d("searchVid", "NO SUCH VIDEOS FOUND")
-                            Toast.makeText(
-                                activity as MainActivity2,
-                                "NO SUCH VIDEOS FOUND",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        } else {
-                            p1.body()?.videos?.let { it1 ->
-                                (activity as MainActivity2).strartVideoScene(
-                                    it1.first()
-                                )
-                            }
+                query
+            )?.enqueue(object : Callback<PageData> {
+                override fun onResponse(p0: Call<PageData>, p1: Response<PageData>) {
+                    if (p1.body()?.videos.isNullOrEmpty()) {
+                        Toast.makeText(activity as MainActivity2, "NO SUCH VIDEOS FOUND", Toast.LENGTH_SHORT).show()
+                    } else {
+                        p1.body()?.videos?.firstOrNull()?.let {
+                            (activity as MainActivity2).strartVideoScene(it)
+                            onMovedto()
                         }
                     }
+                }
 
-                    override fun onFailure(p0: Call<PageData>, p1: Throwable) {
-                        Log.d("searchVid", p1.message.toString())
-                        Toast.makeText(
-                            activity as MainActivity2,
-                            p1.message.toString(),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-
-                })
+                override fun onFailure(p0: Call<PageData>, p1: Throwable) {
+                    Toast.makeText(activity as MainActivity2, p1.message, Toast.LENGTH_SHORT).show()
+                }
+            })
         }
     }
 
     private fun setupLikeDislike() {
         val videoId = arguments?.getInt(MainActivity2.KEY_VIDEO_IDS)
-        if (videoId != null) {
-            fetchVideoData(videoId)
-        }
+        videoId?.let { fetchVideoData(it) }
 
         likeButton.setOnClickListener {
-            if (videoId != null) {
-                updateLikeDislike(videoId, "likes")
-            } else {
-                Toast.makeText(context, "Invalid video ID", Toast.LENGTH_SHORT).show()
-            }
+            videoId?.let { updateLikeDislike(it, "likes") } ?: Toast.makeText(context, "Invalid video ID", Toast.LENGTH_SHORT).show()
         }
 
         dislikeButton.setOnClickListener {
-            if (videoId != null) {
-                updateLikeDislike(videoId, "dislikes")
-            } else {
-                Toast.makeText(context, "Invalid video ID", Toast.LENGTH_SHORT).show()
-            }
+            videoId?.let { updateLikeDislike(it, "dislikes") } ?: Toast.makeText(context, "Invalid video ID", Toast.LENGTH_SHORT).show()
         }
     }
 
     @OptIn(UnstableApi::class)
     fun setupPlayer() {
-
-
         if (videoUrls.isNullOrEmpty()) {
             Log.e("VideoScreen", "No video URLs provided")
-            return // Exit the method early if no videos are available
+            return
         }
 
         minUrl = arguments?.getString(MainActivity2.KEY_MIN_VIDEO)
-        if ((activity as MainActivity2).miniplayerurl == minUrl && isMiniPlayerActive) {
-            return
-        }
+        if ((activity as MainActivity2).miniplayerurl == minUrl && isMiniPlayerActive) return
+
         val uri = Uri.parse(minUrl)
         val mediaItem = MediaItem.fromUri(uri)
 
-        // Populate media items
         videoUrls?.forEachIndexed { index, url ->
-            if (minUrl == url) {
-                minQuality = videoQualities?.get(index)
-            }
-            val uri1 = Uri.parse(url)
-            val mediaItem1 = MediaItem.fromUri(uri1)
-            mediaItemList.add(mediaItem1)
+            if (minUrl == url) minQuality = videoQualities?.get(index)
+            mediaItemList.add(MediaItem.fromUri(Uri.parse(url)))
         }
-        playerView.player = player
 
-        // Prepare the player
+        playerView.player = player
         player?.setMediaItem(mediaItem)
         player?.prepare()
         player?.playWhenReady = true
     }
 
-    var isMiniPlayerActive: Boolean = false
+    var isMiniPlayerActive = false
     private fun sendData() {
-        player?.let {
-            minUrl.let { it1 ->
-                if (it1 != null) {
-                    (activity as MainActivity2).onPlayerLaunch(
-                        it1,
-                        it.currentPosition, player!!.isPlaying, isAudioOnly
-                    )
-                }
+        minUrl?.let { it2 ->
+            player?.let {
+                (activity as MainActivity2).onPlayerLaunch(it2, it.currentPosition, it.isPlaying, isAudioOnly)
             }
         }
         isMiniPlayerActive = true
@@ -513,40 +373,26 @@ class VideoScreen : Scenes() {
 
     private fun setupVideoTitle() {
         val url: String? = arguments?.getString("url")
-
-
-        // Extract video title
         val title = url?.substring(29)?.replace("-", " ")?.replaceFirstChar { it.uppercase() }
         titleTextView.text = title
     }
 
     private fun setupQualitySelector() {
-
         "Quality: $minQuality".also { qualityButton.text = it }
         qualityTrackLayout.removeAllViews()
 
-
-        // Populate quality options
         videoQualities?.forEachIndexed { index, quality ->
-            val qualityButton = layoutInflater.inflate(
-                R.layout.qualitybutton_layout,
-                qualityTrackLayout,
-                false
-            ) as Button
+            val qualityButton = layoutInflater.inflate(R.layout.qualitybutton_layout, qualityTrackLayout, false) as Button
             qualityButton.text = quality
             qualityButton.setOnClickListener { changeQuality(index) }
             qualityTrackLayout.addView(qualityButton)
         }
-        val audioOnlyButton = layoutInflater.inflate(
-            R.layout.qualitybutton_layout,
-            qualityTrackLayout,
-            false
-        ) as Button
+
+        val audioOnlyButton = layoutInflater.inflate(R.layout.qualitybutton_layout, qualityTrackLayout, false) as Button
         "Audio-Only".also { audioOnlyButton.text = it }
         audioOnlyButton.setOnClickListener { audioOnlyButtonPressed() }
         qualityTrackLayout.addView(audioOnlyButton)
 
-        // Create quality dialog
         qualityDialog = AlertDialog.Builder(activity as MainActivity2)
             .setView(qualityLayout)
             .create()
@@ -557,29 +403,22 @@ class VideoScreen : Scenes() {
         }
     }
 
-
     @OptIn(UnstableApi::class)
     private fun audioOnlyButtonPressed() {
-
         val trackSelectionParameters = TrackSelectionParameters.Builder(activity as MainActivity2)
-            .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, true) // Disable video tracks
+            .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, true)
             .build()
         trackSelector.setParameters(trackSelectionParameters)
         isAudioOnly = true
-
         qualityDialog.dismiss()
         player?.play()
-
         "Quality: AUDIO-ONLY".also { qualityButton.text = it }
-
     }
-
 
     @OptIn(UnstableApi::class)
     private fun changeQuality(index: Int) {
-
         val trackSelectionParameters = TrackSelectionParameters.Builder(activity as MainActivity2)
-            .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, false) // Disable video tracks
+            .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, false)
             .build()
         trackSelector.setParameters(trackSelectionParameters)
         isAudioOnly = false
@@ -591,25 +430,20 @@ class VideoScreen : Scenes() {
         player?.playWhenReady = true
         qualityDialog.dismiss()
         currentUrl = videoUrls?.get(index) ?: ""
-
-
         "Quality: ${videoQualities?.get(index) ?: "N/A"}".also { qualityButton.text = it }
     }
-
     lateinit var fullscreenButton: ImageView
 
     private fun setupFullscreenHandler() {
         fullscreenButton = playerView.findViewById(R.id.exo_fullscreen_icon)
         val collapsingToolbar: CollapsingToolbarLayout = binding.collapsingToolbar
-        WindowCompat.setDecorFitsSystemWindows((activity as MainActivity2).window, false)
+        val activity = activity as MainActivity2
+        WindowCompat.setDecorFitsSystemWindows(activity.window, false)
 
         fullscreenButton.setOnClickListener {
-            Log.d("fullscreenbutton", (activity as MainActivity2).isInFullscreen.toString())
-            val windowInsetsController = WindowCompat.getInsetsController(
-                (activity as MainActivity2).window,
-                (activity as MainActivity2).window.decorView
-            )
-            if ((activity as MainActivity2).isInFullscreen) {
+            Log.d("fullscreenbutton", activity.isInFullscreen.toString())
+            val windowInsetsController = WindowCompat.getInsetsController(activity.window, activity.window.decorView)
+            if (activity.isInFullscreen) {
                 exitFullscreen(windowInsetsController, collapsingToolbar, fullscreenButton)
             } else {
                 enterFullscreen(windowInsetsController, collapsingToolbar, fullscreenButton)
@@ -622,34 +456,29 @@ class VideoScreen : Scenes() {
         toolbar: CollapsingToolbarLayout,
         button: ImageView
     ) {
-        (activity as MainActivity2).isInFullscreen = true
-        button.setImageDrawable(
-            ContextCompat.getDrawable(
-                activity as MainActivity2,
-                R.drawable.ic_fullscreen_close
-            )
-        )
+        val activity = activity as MainActivity2
+        activity.isInFullscreen = true
+        button.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_fullscreen_close))
+
         controller.hide(WindowInsetsCompat.Type.systemBars())
-        controller.systemBarsBehavior =
-            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        (activity as MainActivity2).supportActionBar?.hide()
+        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        activity.supportActionBar?.hide()
+
         toolbar.layoutParams = (toolbar.layoutParams as AppBarLayout.LayoutParams).apply {
             scrollFlags = 0
         }
-        val params = binding.appBarLayout.layoutParams as CoordinatorLayout.LayoutParams
-        params.behavior = null
-        binding.appBarLayout.layoutParams = params
+        (binding.appBarLayout.layoutParams as CoordinatorLayout.LayoutParams).apply {
+            behavior = null
+        }
+        binding.appBarLayout.layoutParams = binding.appBarLayout.layoutParams
 
-        (activity as MainActivity2).requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         playerView.layoutParams = playerView.layoutParams.apply {
             width = ViewGroup.LayoutParams.MATCH_PARENT
-            val displayMetrics = resources.displayMetrics
-            val screenHeight = displayMetrics.widthPixels
-            height = screenHeight
+            height = resources.displayMetrics.widthPixels
         }
         playerView.findViewById<ImageButton>(R.id.miniplayer_button).visibility = View.GONE
-        (activity as MainActivity2).toggleFullscreen(true)
-
+        activity.toggleFullscreen(true)
     }
 
     private fun exitFullscreen(
@@ -657,35 +486,31 @@ class VideoScreen : Scenes() {
         toolbar: CollapsingToolbarLayout,
         button: ImageView
     ) {
-        (activity as MainActivity2).isInFullscreen = false
-        button.setImageDrawable(
-            ContextCompat.getDrawable(
-                (activity as MainActivity2),
-                R.drawable.ic_fullscreen_open
-            )
-        )
+        val activity = activity as MainActivity2
+        activity.isInFullscreen = false
+        button.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_fullscreen_open))
+
         controller.show(WindowInsetsCompat.Type.systemBars())
-        (activity as MainActivity2).supportActionBar?.show()
+        activity.supportActionBar?.show()
+
         toolbar.layoutParams = (toolbar.layoutParams as AppBarLayout.LayoutParams).apply {
-            scrollFlags =
-                AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or AppBarLayout.LayoutParams.SCROLL_FLAG_EXIT_UNTIL_COLLAPSED
+            scrollFlags = AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or AppBarLayout.LayoutParams.SCROLL_FLAG_EXIT_UNTIL_COLLAPSED
         }
-        (activity as MainActivity2).requestedOrientation =
-            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-        val params = binding.appBarLayout.layoutParams as CoordinatorLayout.LayoutParams
-        params.behavior = AppBarLayout.Behavior()
-        binding.appBarLayout.layoutParams = params
+        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        (binding.appBarLayout.layoutParams as CoordinatorLayout.LayoutParams).apply {
+            behavior = AppBarLayout.Behavior()
+        }
+        binding.appBarLayout.layoutParams = binding.appBarLayout.layoutParams
 
         playerView.layoutParams = playerView.layoutParams.apply {
             height = 300.dp
         }
 
         playerView.findViewById<ImageButton>(R.id.miniplayer_button).visibility = View.VISIBLE
-        (activity as MainActivity2).toggleFullscreen(false)
+        activity.toggleFullscreen(false)
     }
 
     private fun setupPreviewImages() {
-
         photosLayout.removeAllViews()
         val pictures = arguments?.getStringArrayList(MainActivity2.KEY_PICTURES)
 
@@ -703,7 +528,6 @@ class VideoScreen : Scenes() {
 
     override fun onDestroy() {
         super.onDestroy()
-
         player?.release()
         player = null
     }
