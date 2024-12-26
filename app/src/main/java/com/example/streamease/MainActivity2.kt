@@ -3,14 +3,11 @@ package com.example.streamease
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.SearchView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.OptIn
@@ -22,221 +19,157 @@ import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
-import androidx.media3.ui.PlayerView
-import com.example.streamease.fragmentscenes.MainScene
-import com.example.streamease.fragmentscenes.SavedVideos
-import com.example.streamease.fragmentscenes.VideoScreen
-import com.example.streamease.fragmentscenes.ProfileView
-import com.example.streamease.fragmentscenes.Scenes
+import com.example.streamease.fragmentscenes.*
 import com.example.streamease.models.Video
 import com.example.streamease.databinding.ActivityMain2Binding
 import com.example.streamease.helper.RetrofitClient
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.FirebaseFirestore
 import io.github.hyuwah.draggableviewlib.DraggableView
 import io.github.hyuwah.draggableviewlib.setupDraggable
 import jp.wasabeef.blurry.Blurry
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import retrofit2.awaitResponse
 
-@UnstableApi
+@OptIn(UnstableApi::class)
 class MainActivity2 : AppCompatActivity() {
 
-
+    var miniplayerurl: String=""
     private lateinit var binding: ActivityMain2Binding
     private lateinit var nav: BottomNavigationView
-    var hassearched: Boolean = false
-    var lastquery: String = ""
-
-    // Add this to MainActivity2
-    var isInFullscreen: Boolean = false
-    private val mainScene = MainScene()       // Home fragment
-     val videoScreen = VideoScreen() // Video screen fragment
-    private val profileScene = ProfileView() // Video screen fragment
-    private val savedScene = SavedVideos() // Video screen fragment
-     private var activeFragment: Scenes = mainScene
+    private val mainScene = MainScene()
+    private val videoScreen = VideoScreen()
+    private val profileScene = ProfileView()
+    private val savedScene = SavedVideos()
+    private var activeFragment: Scenes = mainScene
     private var previusScene: Scenes? = null
-    private lateinit var searchContainer: LinearLayout
-    private lateinit var videosearch: SearchView
-    private lateinit var cancelButton: TextView
-    private lateinit var touchInterceptor: View
-    private lateinit var blurryView: ImageView
-    private lateinit var someDraggableView: DraggableView<PlayerView>
+    private val searchContainer by lazy { binding.searchContainer }
+    private val videosearch by lazy { binding.videoSearch }
+    private val cancelButton by lazy { binding.cancelButton }
+    private val touchInterceptor by lazy { binding.touchInterceptor }
+    private val blurryView by lazy { binding.blurryView }
     private lateinit var player: ExoPlayer
     private lateinit var trackSelector: DefaultTrackSelector
-    lateinit var savedvideos:MutableList<Video>
-    private lateinit var currentvideo:Video
-
+    lateinit var savedvideos: MutableList<Video>
+    private var currentvideo: Video? = null
+    var isInFullscreen = false
+    val db = FirebaseFirestore.getInstance()
     val userid = FirebaseAuth.getInstance().currentUser?.uid
-    var db = Firebase.firestore
+    private var updating = false
+    var hassearched = false
+    var lastquery = ""
 
     @SuppressLint("ClickableViewAccessibility")
-    @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        initializeBindings()
+        initializePlayer()
+        setupNavigation()
+        setupSearch()
+        fetchVideos()
+        setupBackPressHandler()
+    }
 
+    private fun initializeBindings() {
         binding = ActivityMain2Binding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.logo.setOnClickListener { onLOGOPressed() }
-        searchContainer = binding.searchContainer
-        videosearch = binding.videoSearch
-        cancelButton = binding.cancelButton
-        touchInterceptor = binding.touchInterceptor
-        blurryView = binding.blurryView
         savedvideos = mutableListOf()
-        // Initialize ExoPlayer
+    }
+
+    private fun initializePlayer() {
         trackSelector = DefaultTrackSelector(this)
         player = ExoPlayer.Builder(this).setTrackSelector(trackSelector).build()
-
-        // Setup floating player (UI)
         setupFloatingPlayer()
+    }
 
+    private fun setupNavigation() {
         nav = binding.navView
         setupFragments()
         showFragment(mainScene)
         nav.setOnItemSelectedListener {
-            if (isInFullscreen) {
-                // Ignore navigation actions in fullscreen mode
-                return@setOnItemSelectedListener false
-            }
-            if (nav.selectedItemId == it.itemId) {
-                // Avoid unnecessary fragment loading
-                return@setOnItemSelectedListener false
-            }
+            if (isInFullscreen || nav.selectedItemId == it.itemId) return@setOnItemSelectedListener false
             when (it.itemId) {
-                R.id.navigation_videoplay -> {
-                    showFragment(videoScreen)
-                }
-
-                R.id.navigation_home -> {
-                    showFragment(mainScene)
-                }
-                R.id.navigation_myAcc -> {
-                    showFragment(profileScene)
-                }
-                R.id.navigation_hisNsavV -> {
-                    showFragment(savedScene)
-                }
+                R.id.navigation_videoplay -> showFragment(videoScreen)
+                R.id.navigation_home -> showFragment(mainScene)
+                R.id.navigation_myAcc -> showFragment(profileScene)
+                R.id.navigation_hisNsavV -> showFragment(savedScene)
             }
             true
         }
+    }
+
+    private fun setupSearch() {
         videosearch.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 onSearched(query)
                 toggleSearch()
                 return false
             }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                return false
-            }
+            override fun onQueryTextChange(newText: String?) = false
         })
         binding.searchButton.setOnClickListener { toggleSearch() }
         cancelButton.setOnClickListener { toggleSearch() }
-        touchInterceptor.setOnTouchListener { _, _ -> true }
+    }
 
-        fetchVideos()
-
-
-        onBackPressedDispatcher.addCallback(this, object: OnBackPressedCallback(true) {
+    private fun setupBackPressHandler() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if(isInFullscreen){
-                    videoScreen.fullscreenButton.callOnClick()
-                }
-                else if(previusScene==null) {
-                    finish()
-                }else{
-
-                    showFragment(previusScene!!)
+                when {
+                    isInFullscreen -> videoScreen.fullscreenButton.callOnClick()
+                    previusScene == null -> finish()
+                    else -> showFragment(previusScene!!)
                 }
             }
         })
-
     }
 
     private fun fetchVideos() {
-
-        if (userid != null) {
-            db.collection("User").document(userid).collection("SAVED").get()
+        userid?.let { userId ->
+            db.collection("User").document(userId).collection("SAVED").get()
                 .addOnSuccessListener { documents ->
-                    if (!documents.isEmpty) {
-                            for (document in documents) {
-                                val videoId = document.getLong("videoId")?.toInt()
-                                if (videoId != null) {
-                                    lifecycleScope.launch {
-                                        val video = getVideoById(videoId)
-                                        if (video != null) {
-                                            Log.d("MainActivity", "Fetched video: ${video.id}")
-                                            savedvideos+=video
-                                            savedScene.updateSaved()
-
-                                        }
-
-                                    }
-                                }
-                            }
-
-                    }
-                    savedScene.updateSaved()
+                    if (!(documents.isEmpty)) {
+                        lifecycleScope.launch {
+                            val videoIds = documents.mapNotNull { it.getLong("videoId")?.toInt() }
+                            val videos = videoIds.map { async { getVideoById(it) } }.awaitAll()
+                            savedvideos.addAll(videos.filterNotNull())
+                            savedScene.updateSaved()
+                        }
+                    } else savedScene.updateSaved()
                 }
         }
     }
 
     private suspend fun getVideoById(videoId: Int): Video? {
-        Log.d("getVideoById", "Fetching video with ID: $videoId")
-
-
         return try {
-            val res = RetrofitClient.instance?.api?.getVideo(APIKEY, videoId)?.awaitResponse()
-            if(res!=null && res.isSuccessful){
-                res.body()
-
-            }else {
-                Log.e("getVideoById", "Failed with response code: ${res?.code()}")
-                null
-            }
-//                override fun onResponse(call: Call<Video>, response: Response<Video>) {
-//                    if (response.isSuccessful && response.body() != null) {
-//                        video = response.body()
-//                        Log.d("getVideoById", "Video fetched successfully: ${video?.id}")
-//                    } else {
-//                        Log.e("getVideoById", "Failed with response code: ${response.code()}, message: ${response.message()}")
-//                    }
-//                }
-//
-//                override fun onFailure(call: Call<Video>, t: Throwable) {
-//                    Log.e("getVideoById", "API call failed: ${t.message}", t)
-//                }
-//            })
+            RetrofitClient.instance?.api?.getVideo(APIKEY, videoId)?.awaitResponse()
+                ?.takeIf { it.isSuccessful }?.body()
         } catch (e: Exception) {
-            Log.e("getVideoById", "Exception while fetching video: ${e.message}", e)
             null
         }
-
     }
 
-
-     private fun onLOGOPressed() {
+    private fun onLOGOPressed() {
         savedScene.updateSaved()
         hassearched = false
         showFragment(mainScene)
         mainScene.reset()
-//        player.stop()
-//        binding.floatingPlayer.visibility = View.GONE
-
     }
 
     private fun toggleSearch() {
         if (searchContainer.visibility == View.GONE) {
             searchContainer.visibility = View.VISIBLE
             touchInterceptor.visibility = View.VISIBLE
-            blurryView.requestLayout() // Force layout update
+            blurryView.requestLayout()
             captureBlur()
-            videosearch.isIconifiedByDefault = false
-            videosearch.isIconified = false
-            videosearch.requestFocusFromTouch()
+            videosearch.apply {
+                isIconifiedByDefault = false
+                isIconified = false
+                requestFocusFromTouch()
+            }
             showKeyboard(videosearch)
         } else {
             searchContainer.visibility = View.GONE
@@ -249,299 +182,162 @@ class MainActivity2 : AppCompatActivity() {
     private fun setupFloatingPlayer() {
         binding.floatingPlayer.visibility = View.GONE
         binding.floatingPlayer.player = player
-        val but = binding.floatingPlayer.findViewById<ImageButton>(R.id.close)
-        but.setOnClickListener { closeplayer() }
-        but.visibility = View.VISIBLE
+        binding.floatingPlayer.findViewById<ImageButton>(R.id.close).apply {
+            setOnClickListener { closePlayer() }
+            visibility = View.VISIBLE
+        }
         binding.floatingPlayer.findViewById<LinearLayout>(R.id.Bottom_bar).visibility = View.GONE
-        binding.floatingPlayer.findViewById<ImageButton>(R.id.miniplayer_button).visibility =
-            View.GONE
-        someDraggableView = binding.floatingPlayer.setupDraggable()
-            .setStickyMode(DraggableView.Mode.STICKY_X)
-            .setAnimated(true)
-            .build()
+        binding.floatingPlayer.findViewById<ImageButton>(R.id.miniplayer_button).visibility = View.GONE
+        binding.floatingPlayer.setupDraggable().setStickyMode(DraggableView.Mode.STICKY_X).setAnimated(true).build()
     }
 
-    private fun closeplayer() {
-        videoScreen.isMiniPlayerActive =false
+    private fun closePlayer() {
+        videoScreen.isMiniPlayerActive = false
         videoScreen.setupPlayer()
         binding.floatingPlayer.visibility = View.GONE
         player.stop()
     }
-    var miniplayerurl:String?=null
-    fun onPlayerLaunch(
-        videoUrl: String,
-        playbackPosition: Long,
-        isPlaying: Boolean,
-        isAudionly: Boolean
-    ) {
 
-        miniplayerurl=videoUrl
-        // Resume playback in MainActivity's ExoPlayer
-        player.setMediaItem(MediaItem.fromUri(videoUrl))
-        player.seekTo(playbackPosition)
-        player.prepare()
-        player.playWhenReady = isPlaying
+    fun onPlayerLaunch(videoUrl: String, playbackPosition: Long, isPlaying: Boolean, isAudionly: Boolean) {
+        miniplayerurl = videoUrl
+        player.apply {
+            setMediaItem(MediaItem.fromUri(videoUrl))
+            seekTo(playbackPosition)
+            prepare()
+            playWhenReady = isPlaying
+        }
         binding.floatingPlayer.visibility = View.VISIBLE
         val trackSelectionParameters = TrackSelectionParameters.Builder(this)
-            .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, isAudionly) // Disable video tracks
+            .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, isAudionly)
             .build()
         trackSelector.setParameters(trackSelectionParameters)
     }
 
-
     private fun captureBlur() {
-        blurryView.post {
-            binding.main.postDelayed({
-                Log.d(
-                    "MainActivity",
-                    "Main dimensions: ${binding.main.width}x${binding.main.height}"
-                )
-                Log.d(
-                    "MainActivity",
-                    "BlurryView dimensions: ${blurryView.width}x${blurryView.height}"
-                )
-                Blurry.with(this)
-                    .radius(25)
-                    .sampling(2)
-                    .capture(binding.main)
-                    .into(blurryView)
-                blurryView.visibility = View.VISIBLE
-            }, 50)
-        }
-
+        blurryView.postDelayed({
+            Blurry.with(this)
+                .radius(25)
+                .sampling(2)
+                .capture(binding.main)
+                .into(blurryView)
+            blurryView.visibility = View.VISIBLE
+        }, 50)
     }
 
     private fun showKeyboard(view: View) {
         val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        view.post {
-            imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
-            Log.d("MainActivity", "Keyboard shown")
+        imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
+    }
+    fun showSavedScene() {
+        showFragment(savedScene) // Display the saved videos fragment
+        nav.selectedItemId = R.id.navigation_hisNsavV // Update the navigation to reflect the current fragment
+    }
+    fun removeSavedVideo(position: Int) {
+        if (position in savedvideos.indices) {
+            val video = savedvideos[position]
+            db.collection("User").document(userid!!).collection("SAVED")
+                .document(video.id.toString()).delete()
+                .addOnSuccessListener {
+                    savedvideos.removeAt(position)
+                    savedScene.updateSaved() // Refresh the saved scene to reflect changes
+                    Toast.makeText(this, "Video Removed", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener {
+                    Toast.makeText(this, "Failed to remove video", Toast.LENGTH_SHORT).show()
+                }
         }
     }
 
     private fun hideKeyboard() {
         val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(videosearch.windowToken, 0)
-        Log.d("MainActivity", "Keyboard hidden")
     }
 
     private fun onSearched(query: String?) {
         showFragment(mainScene)
         mainScene.reset(query)
         hassearched = true
-
-        if (query != null) {
-            lastquery = query
-        }
-
+        lastquery = query!!
     }
 
     private fun setupFragments() {
-        // Add all fragments to the FragmentManager but hide them initially
         supportFragmentManager.beginTransaction()
-            .add(R.id.Replacable_frame, videoScreen, "VideoScreen")
-            .hide(videoScreen)
+            .apply {
+                add(R.id.Replacable_frame, videoScreen, "VideoScreen").hide(videoScreen)
+                add(R.id.Replacable_frame, profileScene, "ProfileScene")
+                add(R.id.Replacable_frame, savedScene, "SavedVideoScene")
+                add(R.id.Replacable_frame, mainScene, "MainScene")
+                hide(videoScreen).hide(profileScene).hide(savedScene)
+            }
             .commit()
-        supportFragmentManager.beginTransaction()
-            .add(R.id.Replacable_frame, profileScene, "ProfileScene")
-            .commit()
-        supportFragmentManager.beginTransaction()
-            .add(R.id.Replacable_frame, savedScene, "SavedVideoScene")
-            .commit()
-
-
-        supportFragmentManager.beginTransaction()
-            .add(R.id.Replacable_frame, mainScene, "MainScene")
-            .hide(videoScreen)
-            .hide(profileScene)
-            .hide(savedScene)
-            .commit()
-         // MainScene is the default fragment
-
     }
 
-    @OptIn(UnstableApi::class)
     fun strartVideoScene(video: Video) {
-        if (video.video_files.isEmpty()) {
-            Log.e("MainActivity2", "No video files available for playback")
-            return
-        }
-        val bundle = Bundle()
-        bundle.putString("url", video.url)
-
-        bundle.putInt(KEY_VIDEO_IDS, video.id)
-        val videolinklist: ArrayList<String> = arrayListOf()
-        val videoqualitylist: ArrayList<String> = arrayListOf()
-        val pictures: ArrayList<String> = arrayListOf()
-        var minVideoLink = ""
-        var minVideoheight = Int.MAX_VALUE
-        for (vid in video.video_files) {
-            videolinklist.add(vid.link)
-            if (vid.height < minVideoheight) {
-                minVideoheight = vid.height
-                minVideoLink = vid.link
+        video.video_files.takeIf { it.isNotEmpty() }?.let {
+            val bundle = Bundle().apply {
+                putString("url", video.url)
+                putInt(KEY_VIDEO_IDS, video.id)
+                putStringArrayList(KEY_VIDEO_LINKS, ArrayList(it.map { vid -> vid.link }))
+                putString(KEY_MIN_VIDEO, it.minByOrNull { vid -> vid.height }?.link.orEmpty())
+                putStringArrayList(KEY_VIDEO_QUALITY, ArrayList(it.map { "${it.quality} : ${it.width}X${it.height}" }))
+                putStringArrayList(KEY_PICTURES, ArrayList(video.video_pictures.map { it.picture }))
             }
-            videoqualitylist.add("${vid.quality} : ${vid.width}X${vid.height}")
+            videoScreen.arguments = bundle
+            showFragment(videoScreen)
+            currentvideo = video
         }
-        for (vid in video.video_pictures) {
-            pictures.add(vid.picture)
-        }
-        bundle.putStringArrayList(KEY_VIDEO_LINKS, videolinklist)
-        bundle.putString(KEY_MIN_VIDEO, minVideoLink)
-        bundle.putStringArrayList(KEY_VIDEO_QUALITY, videoqualitylist)
-        bundle.putStringArrayList(KEY_PICTURES, pictures)
-        videoScreen.arguments = bundle
-        showFragment(mainScene)
-        showFragment(videoScreen)
-
-        currentvideo=video
-
     }
-    private var updating:Boolean=false
-    fun saveCurrentVideo(){
-        if (savedvideos.contains(currentvideo)) {
-            Log.d("MainActivity", "Video already exists in the saved list.")
-            Toast.makeText(this,"Video already exists in the saved list.",Toast.LENGTH_SHORT).show()
 
-            return
+    fun saveCurrentVideo() {
+        currentvideo?.takeIf { !savedvideos.contains(it) && !updating }?.let {
+            updating = true
+            val videoId = it.id
+            db.collection("User").document(userid!!).collection("SAVED").document(videoId.toString())
+                .set(mapOf("videoId" to videoId))
+                .addOnSuccessListener {_ ->
+                    Toast.makeText(this, "Video Saved", Toast.LENGTH_SHORT).show()
+                    savedvideos.add(it)
+                    savedScene.updateSaved()
+                    updating = false
+                }.addOnFailureListener { updating = false }
         }
-        if(updating){
-            return
-        }
-        updating=true
-        val videoId = currentvideo.id // Assuming `id` is an Int
-
-        // Save the video ID as an Int in FirSavedScene.UpdateSaved()ebase
-        val videoData = hashMapOf("videoId" to videoId)
-        db.collection("User").document(userid!!).collection("SAVED").document(videoId.toString())
-            .set(videoData)
-            .addOnSuccessListener {
-                Log.d("MainActivity", "Video saved to Firebase successfully!")
-                Toast.makeText(this,"Video Saved",Toast.LENGTH_SHORT).show()
-                // Add the video to the local Savedvideos list
-                if (savedvideos.contains(currentvideo)) {
-                    Log.d("MainActivity", "Video already exists in the saved list.")
-                    Toast.makeText(this,"Video already exists in the saved list.",Toast.LENGTH_SHORT).show()
-                }
-                savedvideos.add(currentvideo)
-                savedScene.updateSaved()
-                updating=false
-            }
-            .addOnFailureListener { exception ->
-                Log.e("MainActivity", "Error saving video: ", exception)
-                updating=false
-            }
     }
+
     private fun showFragment(fragment: Scenes) {
-        try {
-            if (fragment == activeFragment) return
-
-            // Begin the fragment transaction
-            val transaction = supportFragmentManager.beginTransaction()
-
-            // Safely hide the current fragment
-            if (supportFragmentManager.fragments.contains(activeFragment)) {
-                transaction.hide(activeFragment)
-            } else {
-                Log.e("MainActivity2", "Active fragment not found in FragmentManager: $activeFragment")
-            }
-
-            // Check if the new fragment is already added to the FragmentManager
-            if (supportFragmentManager.fragments.contains(fragment)) {
-                transaction.show(fragment)
-            } else {
-                transaction.add(R.id.Replacable_frame, fragment, fragment::class.java.simpleName)
-            }
-
-            // Clear the backstack
-            supportFragmentManager.popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
-
-            // Add the new fragment without adding it to the backstack
-            transaction.commit()
-
-            // Update the active and previous fragments
-            previusScene = activeFragment
-            activeFragment.onMovedFrom()
-            activeFragment = fragment
-            activeFragment.onMovedto()
-
-            // Update navigation selection
-            nav.selectedItemId = fragment.navid()
-        } catch (e: Exception) {
-            Log.e("MainActivity2", "Error in showFragment: ${e.message}", e)
-        }
+        if (fragment == activeFragment) return
+        supportFragmentManager.beginTransaction().apply {
+            hide(activeFragment)
+            show(fragment)
+        }.commit()
+        previusScene = activeFragment
+        activeFragment.onMovedFrom()
+        activeFragment = fragment
+        activeFragment.onMovedto()
+        nav.selectedItemId = fragment.navid()
     }
 
-
-
-
-
-
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putBoolean("hasSearched", hassearched)
-        outState.putString("lastQuery", lastquery)
-    }
-
-    fun onFullscreen() {
-        nav.clearAnimation()
-        nav.visibility = View.GONE
-        binding.topView.visibility = View.GONE
-    }
-
-    fun offFullscreen() {
-        nav.clearAnimation()
-        nav.visibility = View.VISIBLE
-        binding.topView.visibility = View.VISIBLE
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        hassearched = savedInstanceState.getBoolean("hasSearched", false)
-        lastquery = savedInstanceState.getString("lastQuery", "")
-    }
-
-    fun removeSavedVideo(position: Int) {
-        if (position < 0 || position >= savedvideos.size) {
-            Log.e("MainActivity2", "Invalid position: $position. List size: ${savedvideos.size}")
-            return
-        }
-        db.collection("User").document(userid!!).collection("SAVED").document(savedvideos[position].id.toString()).delete()
-            .addOnSuccessListener {
-                if (position >= savedvideos.size) {
-                    Log.e("MainActivity2", "Invalid position: $position. List size: ${savedvideos.size}")
-                }else{
-                savedvideos.removeAt(position)
-                savedScene.updateSaved()}
-            }
-    }
-
-
-    fun showSavedScene() {
-        showFragment(savedScene)
-
-        nav.selectedItemId = R.id.navigation_hisNsavV
-    }
-
-    fun logout(){
+    fun logout() {
         FirebaseAuth.getInstance().signOut()
-
-        // Optionally, you can redirect the user to the login screen
-        val intent = Intent(this, Login::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
+        startActivity(Intent(this, Login::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        })
         finish()
     }
-
-
+    fun toggleFullscreen(isFullscreen: Boolean) {
+        if (isFullscreen) {
+            nav.visibility = View.GONE
+            binding.topView.visibility = View.GONE
+        } else {
+            nav.visibility = View.VISIBLE
+            binding.topView.visibility = View.VISIBLE
+        }
+    }
     companion object {
-        const val APIKEY: String = "ugpXVoRZqu4YZYA4pIRXwVYP8Mgyn5O3aZBYkTC2Z5CFn7tgZCz4M5ml"
+        const val APIKEY = "ugpXVoRZqu4YZYA4pIRXwVYP8Mgyn5O3aZBYkTC2Z5CFn7tgZCz4M5ml"
         const val KEY_VIDEO_LINKS = "Video links"
         const val KEY_VIDEO_IDS = "Video_ID"
         const val KEY_MIN_VIDEO = "Video min"
         const val KEY_VIDEO_QUALITY = "video quality"
         const val KEY_PICTURES = "pictures"
     }
-
 }
