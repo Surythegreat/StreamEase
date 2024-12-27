@@ -19,4 +19,5 @@
     <color name="dark_purple">#332835</color>
     <color name="dark_green">#0B3F0B</color>
     <color name="bluish_purple">#72610DD8</color>
+    <color name="comment_back_color">#473E57</color>
 </resources>

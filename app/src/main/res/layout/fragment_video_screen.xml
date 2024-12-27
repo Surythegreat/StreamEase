@@ -178,7 +178,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/rounded_card"
+                android:background="@drawable/rounded_card_purple"
                 android:orientation="vertical">
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/commentsRecyclerView"
