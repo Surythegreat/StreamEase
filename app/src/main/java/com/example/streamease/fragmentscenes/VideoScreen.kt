@@ -30,21 +30,28 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.PlayerView
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.streamease.MainActivity2
 import com.example.streamease.R
 import com.example.streamease.databinding.FragmentVideoScreenBinding
+import com.example.streamease.helper.CommentsAdapter
 import com.example.streamease.helper.RetrofitClient
+import com.example.streamease.models.Comment
 import com.example.streamease.models.PageData
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.Calendar
 
 
 @UnstableApi
@@ -80,13 +87,17 @@ class VideoScreen : Scenes() {
     override fun navid(): Int {
         return R.id.navigation_videoplay
     }
+    private val commentsList = mutableListOf<Comment>()
 
+    private var videoId = 0;
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentVideoScreenBinding.inflate(inflater, container, false)
+
+
         return binding.root
     }
 
@@ -278,6 +289,7 @@ class VideoScreen : Scenes() {
         videoUrls = arguments?.getStringArrayList(MainActivity2.KEY_VIDEO_LINKS)
         videoQualities = arguments?.getStringArrayList(MainActivity2.KEY_VIDEO_QUALITY)
 
+        videoId = arguments?.getInt(MainActivity2.KEY_VIDEO_IDS)?:0
         binding.appBarLayout.visibility = if (videoUrls.isNullOrEmpty()) View.GONE else View.VISIBLE
         binding.DetailsContainer.visibility = if (videoUrls.isNullOrEmpty()) View.GONE else View.VISIBLE
 
@@ -287,7 +299,150 @@ class VideoScreen : Scenes() {
         setupPreviewImages()
         setupLikeDislike()
         setupSearchVid()
+
+        val recyclerView = binding.commentsRecyclerView
+        val commentEditText = binding.commentEditText
+        val postCommentButton = binding.postCommentButton
+
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        val db = FirebaseFirestore.getInstance()
+        val adapter = CommentsAdapter(commentsList, object : CommentsAdapter.OnItemClickListner {
+            override fun onItemClick(position: Int) {
+                closeComment(position)
+            }
+        })
+        recyclerView.adapter = adapter
+
+// Fetch existing comments
+        db.collection("Videos").document(videoId.toString()).collection("Comments")
+            .get()
+            .addOnSuccessListener {
+                for (i in it){
+                    val comment = i.getString("userId")?.let { it1 -> Comment(it1,
+                        i.getString("userName")!!,
+                        i.getString("commentText")!!, i.getString("timestamp")!!,i.id) }
+                    if (comment != null) {
+                        commentsList.add(comment)
+                        adapter.notifyDataSetChanged()
+                    }
+                }
+            }
+
+// Post a new comment
+        postCommentButton.setOnClickListener {
+            val commentText = commentEditText.text.toString().trim()
+            val user = FirebaseAuth.getInstance().currentUser
+
+            if (user == null || commentText.isEmpty()) {
+                Log.e("Comments", "User is not authenticated or comment is empty.")
+                return@setOnClickListener
+            }
+
+            // Disable the button to prevent multiple clicks
+            postCommentButton.isEnabled = false
+
+            val userId = user.uid
+            val ref = db.collection("Videos").document(videoId.toString())
+                .collection("Comments")
+
+            db.collection("User").document(userId).get().addOnSuccessListener { userDoc ->
+                val userName = userDoc.getString("Name") ?: "Anonymous"
+                val documentId = ref.document().id
+                val newComment = Comment(
+                    userId = userId,
+                    userName = userName,
+                    commentText = commentText,
+                    timestamp = Calendar.getInstance().time.toString().substring(0, 20),
+                    documentId = documentId
+                )
+                val hasm = hashMapOf(
+                    "userId" to newComment.userId,
+                    "userName" to newComment.userName,
+                    "commentText" to newComment.commentText,
+                    "timestamp" to newComment.timestamp
+                )
+
+                ref.document(documentId).set(hasm)
+                    .addOnSuccessListener {
+                        commentEditText.text.clear()
+                        commentsList.add(newComment)
+                        adapter.notifyItemInserted(commentsList.lastIndex)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.w("Comments", "Error adding comment", e)
+                        Toast.makeText(requireContext(), "Failed to post comment. Try again.", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnCompleteListener {
+                        // Re-enable the button after the operation
+                        postCommentButton.isEnabled = true
+                    }
+            }.addOnFailureListener { e ->
+                Log.w("Comments", "Error fetching user details", e)
+                Toast.makeText(requireContext(), "Failed to fetch user details. Try again.", Toast.LENGTH_SHORT).show()
+                postCommentButton.isEnabled = true
+            }
+        }
+
     }
+    private var isDeleteInProgress = false // Flag to track delete operations
+
+    private fun closeComment(position: Int) {
+        Log.d("Comments", "Attempting to delete comment at position $position")
+
+        if (isDeleteInProgress) {
+            Log.w("Comments", "Delete operation is already in progress. Ignoring subsequent clicks.")
+            return
+        }
+
+        if (commentsList.isEmpty()) {
+            Log.e("Comments", "commentsList is empty. Cannot delete comment.")
+            return
+        }
+
+        if (position < 0 || position >= commentsList.size) {
+            Log.e("Comments", "Invalid position: $position. List size: ${commentsList.size}")
+            return
+        }
+
+        val comment = commentsList[position]
+        if (comment.documentId.isNullOrEmpty()) {
+            Log.e("Comments", "Invalid commentId. Cannot delete.")
+            return
+        }
+
+        val commentId = comment.documentId
+        Log.d("Comments", "Deleting comment with ID: $commentId")
+
+        // Set the flag to prevent subsequent clicks
+        isDeleteInProgress = true
+
+        if (commentId != null) {
+            FirebaseFirestore.getInstance()
+                .collection("Videos")
+                .document(videoId.toString())
+                .collection("Comments")
+                .document(commentId)
+                .delete()
+                .addOnSuccessListener {
+                    Log.d("Comments", "Comment deleted successfully.")
+                    if (position < commentsList.size) {
+                        commentsList.removeAt(position)
+                        binding.commentsRecyclerView.adapter?.notifyItemRemoved(position)
+                        binding.commentsRecyclerView.adapter?.notifyItemRangeChanged(position, commentsList.size)
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.e("Comments", "Failed to delete comment", e)
+                }
+                .addOnCompleteListener {
+                    isDeleteInProgress = false // Reset the flag once the operation is complete
+                }
+        }
+    }
+
+
+
 
     private fun setupSearchVid() {
         binding.PlayButton.setOnClickListener {
@@ -317,15 +472,14 @@ class VideoScreen : Scenes() {
     }
 
     private fun setupLikeDislike() {
-        val videoId = arguments?.getInt(MainActivity2.KEY_VIDEO_IDS)
-        videoId?.let { fetchVideoData(it) }
+        videoId.let { fetchVideoData(it) }
 
         likeButton.setOnClickListener {
-            videoId?.let { updateLikeDislike(it, "likes") } ?: Toast.makeText(context, "Invalid video ID", Toast.LENGTH_SHORT).show()
+            videoId.let { updateLikeDislike(it, "likes") } ?: Toast.makeText(context, "Invalid video ID", Toast.LENGTH_SHORT).show()
         }
 
         dislikeButton.setOnClickListener {
-            videoId?.let { updateLikeDislike(it, "dislikes") } ?: Toast.makeText(context, "Invalid video ID", Toast.LENGTH_SHORT).show()
+            videoId.let { updateLikeDislike(it, "dislikes") } ?: Toast.makeText(context, "Invalid video ID", Toast.LENGTH_SHORT).show()
         }
     }
 
