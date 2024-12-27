@@ -41,7 +41,7 @@ class CommentsAdapter(private val comments: List<Comment>,val listner: OnItemCli
         val comment = comments[position]
         holder.userNameTextView.text = comment.userName
         holder.commentTextView.text = comment.commentText
-        holder.timetextview.text = comment.timestamp
+        holder.timetextview.text = comment.time
         holder.closeButton.visibility = if((FirebaseAuth.getInstance().currentUser?.uid
                 ?: 0) == comment.userId
         ){

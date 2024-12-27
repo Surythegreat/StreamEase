@@ -5,5 +5,6 @@ data class Comment(
     val userName: String = "",
     val commentText: String = "",
     val timestamp: String = "",
+    val time:String ="",
     var documentId: String? = null
 )

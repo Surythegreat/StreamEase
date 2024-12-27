@@ -42,6 +42,7 @@ import com.example.streamease.models.PageData
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.firebase.Firebase
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.DocumentReference
@@ -316,17 +317,19 @@ class VideoScreen : Scenes() {
 
 // Fetch existing comments
         db.collection("Videos").document(videoId.toString()).collection("Comments")
+            .orderBy("timestamp", Query.Direction.ASCENDING)
             .get()
             .addOnSuccessListener {
                 for (i in it){
                     val comment = i.getString("userId")?.let { it1 -> Comment(it1,
                         i.getString("userName")!!,
-                        i.getString("commentText")!!, i.getString("timestamp")!!,i.id) }
+                        i.getString("commentText")!!, i.getString("timestamp")!!,i.getString("time")!!,i.id) }
                     if (comment != null) {
                         commentsList.add(comment)
-                        adapter.notifyDataSetChanged()
                     }
                 }
+
+                adapter.notifyDataSetChanged()
             }
 
 // Post a new comment
@@ -353,14 +356,16 @@ class VideoScreen : Scenes() {
                     userId = userId,
                     userName = userName,
                     commentText = commentText,
-                    timestamp = Calendar.getInstance().time.toString().substring(0, 20),
+                    timestamp = Timestamp.now().toString(),
+                    time = Calendar.getInstance().time.toString().substring(0, 20) ,
                     documentId = documentId
                 )
                 val hasm = hashMapOf(
                     "userId" to newComment.userId,
                     "userName" to newComment.userName,
                     "commentText" to newComment.commentText,
-                    "timestamp" to newComment.timestamp
+                    "timestamp" to newComment.timestamp,
+                    "time" to newComment.time
                 )
 
                 ref.document(documentId).set(hasm)
