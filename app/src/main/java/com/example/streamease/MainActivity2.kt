@@ -37,7 +37,7 @@ import retrofit2.awaitResponse
 @OptIn(UnstableApi::class)
 class MainActivity2 : AppCompatActivity() {
 
-    var miniplayerurl: String=""
+    var miniplayerurl: String = ""
     private lateinit var binding: ActivityMain2Binding
     private lateinit var nav: BottomNavigationView
     private val mainScene = MainScene()
@@ -109,6 +109,7 @@ class MainActivity2 : AppCompatActivity() {
                 toggleSearch()
                 return false
             }
+
             override fun onQueryTextChange(newText: String?) = false
         })
         binding.searchButton.setOnClickListener { toggleSearch() }
@@ -119,6 +120,7 @@ class MainActivity2 : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 when {
+                    searchContainer.visibility == View.VISIBLE -> toggleSearch()
                     isInFullscreen -> videoScreen.fullscreenButton.callOnClick()
                     previusScene == null -> finish()
                     else -> showFragment(previusScene!!)
@@ -187,8 +189,10 @@ class MainActivity2 : AppCompatActivity() {
             visibility = View.VISIBLE
         }
         binding.floatingPlayer.findViewById<LinearLayout>(R.id.Bottom_bar).visibility = View.GONE
-        binding.floatingPlayer.findViewById<ImageButton>(R.id.miniplayer_button).visibility = View.GONE
-        binding.floatingPlayer.setupDraggable().setStickyMode(DraggableView.Mode.STICKY_X).setAnimated(true).build()
+        binding.floatingPlayer.findViewById<ImageButton>(R.id.miniplayer_button).visibility =
+            View.GONE
+        binding.floatingPlayer.setupDraggable().setStickyMode(DraggableView.Mode.STICKY_X)
+            .setAnimated(true).build()
     }
 
     private fun closePlayer() {
@@ -198,7 +202,12 @@ class MainActivity2 : AppCompatActivity() {
         player.stop()
     }
 
-    fun onPlayerLaunch(videoUrl: String, playbackPosition: Long, isPlaying: Boolean, isAudionly: Boolean) {
+    fun onPlayerLaunch(
+        videoUrl: String,
+        playbackPosition: Long,
+        isPlaying: Boolean,
+        isAudionly: Boolean
+    ) {
         miniplayerurl = videoUrl
         player.apply {
             setMediaItem(MediaItem.fromUri(videoUrl))
@@ -228,10 +237,13 @@ class MainActivity2 : AppCompatActivity() {
         val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
         imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
     }
+
     fun showSavedScene() {
         showFragment(savedScene) // Display the saved videos fragment
-        nav.selectedItemId = R.id.navigation_hisNsavV // Update the navigation to reflect the current fragment
+        nav.selectedItemId =
+            R.id.navigation_hisNsavV // Update the navigation to reflect the current fragment
     }
+
     fun removeSavedVideo(position: Int) {
         if (position in savedvideos.indices) {
             val video = savedvideos[position]
@@ -279,7 +291,10 @@ class MainActivity2 : AppCompatActivity() {
                 putInt(KEY_VIDEO_IDS, video.id)
                 putStringArrayList(KEY_VIDEO_LINKS, ArrayList(it.map { vid -> vid.link }))
                 putString(KEY_MIN_VIDEO, it.minByOrNull { vid -> vid.height }?.link.orEmpty())
-                putStringArrayList(KEY_VIDEO_QUALITY, ArrayList(it.map { "${it.quality} : ${it.width}X${it.height}" }))
+                putStringArrayList(
+                    KEY_VIDEO_QUALITY,
+                    ArrayList(it.map { "${it.quality} : ${it.width}X${it.height}" })
+                )
                 putStringArrayList(KEY_PICTURES, ArrayList(video.video_pictures.map { it.picture }))
             }
             videoScreen.arguments = bundle
@@ -292,9 +307,10 @@ class MainActivity2 : AppCompatActivity() {
         currentvideo?.takeIf { !savedvideos.contains(it) && !updating }?.let {
             updating = true
             val videoId = it.id
-            db.collection("User").document(userid!!).collection("SAVED").document(videoId.toString())
+            db.collection("User").document(userid!!).collection("SAVED")
+                .document(videoId.toString())
                 .set(mapOf("videoId" to videoId))
-                .addOnSuccessListener {_ ->
+                .addOnSuccessListener { _ ->
                     Toast.makeText(this, "Video Saved", Toast.LENGTH_SHORT).show()
                     savedvideos.add(it)
                     savedScene.updateSaved()
@@ -323,6 +339,7 @@ class MainActivity2 : AppCompatActivity() {
         })
         finish()
     }
+
     fun toggleFullscreen(isFullscreen: Boolean) {
         if (isFullscreen) {
             nav.visibility = View.GONE
@@ -332,6 +349,7 @@ class MainActivity2 : AppCompatActivity() {
             binding.topView.visibility = View.VISIBLE
         }
     }
+
     companion object {
         const val APIKEY = "ugpXVoRZqu4YZYA4pIRXwVYP8Mgyn5O3aZBYkTC2Z5CFn7tgZCz4M5ml"
         const val KEY_VIDEO_LINKS = "Video links"

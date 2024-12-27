@@ -101,7 +101,7 @@
         android:layout_height="wrap_content"
         android:background="@color/light_black"
         android:padding="@dimen/general_pading"
-        android:layout_marginTop="@dimen/general_margin"
+        android:layout_marginTop="30dp"
         android:orientation="horizontal"
         android:visibility="gone">
 

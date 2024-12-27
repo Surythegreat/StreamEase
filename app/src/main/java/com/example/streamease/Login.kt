@@ -13,7 +13,7 @@ import com.google.firebase.auth.FirebaseAuth
 class Login : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
     private lateinit var firebaseAuth: FirebaseAuth
-
+    private var islogging=false
     @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,6 +24,8 @@ class Login : AppCompatActivity() {
         firebaseAuth=FirebaseAuth.getInstance()
         // Set up the login button
         binding.loginButton.setOnClickListener {
+            if(islogging)return@setOnClickListener
+            islogging=true
             val email = binding.loginEmail.text.toString().trim()
             val password = binding.loginPassword.text.toString().trim()
 
@@ -33,13 +35,15 @@ class Login : AppCompatActivity() {
                         Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show()
                         val intent = Intent(this, MainActivity2::class.java)
                         startActivity(intent)
+                        islogging=false
                         finish()
                     } else {
                         // Show a detailed error for invalid credentials
+                        islogging=false
                         binding.loginPassword.error = "Invalid email or password"
                     }
                 }
-            }
+            }else{islogging=false}
         }
 
         // Redirect to the Signup page

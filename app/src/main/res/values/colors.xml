@@ -8,8 +8,8 @@
     <color name="transparent">#0000000D</color>
     <color name="lighter_black">#222222</color>
     <color name="Dark_grey">#555555</color>
-    <color name="red">#EE0000</color>
-    <color name="blue">#0000EE</color>
+    <color name="red">#bb0011</color>
+    <color name="blue">#0000cb</color>
     <color name="green">#00EE00</color>
     <color name="primary_color">#FF5722</color>
     <color name="secondary_color">#9B413A</color>
@@ -18,4 +18,5 @@
     <color name="light_green">#63B563</color>
     <color name="dark_purple">#332835</color>
     <color name="dark_green">#0B3F0B</color>
+    <color name="bluish_purple">#72610DD8</color>
 </resources>
