@@ -27,4 +27,7 @@
     <string name="save_video">SAVE VIDEO</string>
     <string name="enter_video_name_to_play">ENTER VIDEO NAME TO PLAY</string>
     <string name="play">PLAY</string>
+    <string name="copy_id">Copy ID</string>
+    <string name="enter_id_to_search">Enter Id To Search</string>
+    <string name="search">Search</string>
 </resources>

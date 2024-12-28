@@ -1,5 +1,7 @@
 package com.example.streamease.fragmentscenes
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,10 +11,16 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import androidx.media3.common.util.UnstableApi
 import com.example.streamease.MainActivity2
 import com.example.streamease.R
 import com.example.streamease.databinding.FragmentProfileViewBinding
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
+
 
 @UnstableApi
 class ProfileView : Scenes() {
@@ -43,14 +51,50 @@ class ProfileView : Scenes() {
         binding = FragmentProfileViewBinding.inflate(inflater, container, false)
         setupProfileEditDialog()
         updateLocalData()
+
         nameL = binding.userNameN
         placeL = binding.userPlaceN
         branchL = binding.userBranchN
         binding.SeeSaved.setOnClickListener { mainActivity2.showSavedScene() }
         binding.SignOutButton.setOnClickListener { mainActivity2.logout() }
+        binding.copyID.setOnClickListener{copyTheID()}
+        binding.SearchButton.setOnClickListener{SearchId()}
+
         return binding.root
     }
 
+    private fun SearchId() {
+        Firebase.firestore.collection("User").document(binding.QueryEdit.text.toString()).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    binding.userInfoSection.visibility= View.VISIBLE
+                    val name = document.getString("name") ?: "Unknown"
+                    val place = document.getString("place") ?: "Unknown"
+                    val branch = document.getString("branch") ?: "Unknown"
+
+                    binding.tvUserName.text = "Name: $name"
+                    binding.tvUserPlace.text = "Place: $place"
+                    binding.tvUserBranch.text = "Branch: $branch"
+
+                    val childFragment: Fragment = SavedVideos()
+
+                    val transaction: FragmentTransaction = childFragmentManager.beginTransaction()
+                    transaction.replace(R.id.userHolder, childFragment).commit()
+                }
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(activity, "Failed to fetch user data: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun copyTheID(){
+        val clipboard = getSystemService(mainActivity2,ClipboardManager::class.java)
+        val clip = ClipData.newPlainText("ID", mainActivity2.userid)
+        if (clipboard != null) {
+            clipboard.setPrimaryClip(clip)
+        }
+
+    }
     private fun setupProfileEditDialog() {
         val lay = layoutInflater.inflate(R.layout.edit_details, null)
         name = lay.findViewById(R.id.user_name)

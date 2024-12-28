@@ -15,7 +15,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:textColor="@color/Dark_grey"
+            android:textColor="@color/light_grey"
             android:id="@+id/time"/>
     <ImageButton
         android:layout_width="wrap_content"
@@ -33,11 +33,13 @@
         android:id="@+id/userNameTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textColor="@color/dark_white"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/commentTextView"
         android:layout_width="wrap_content"
+        android:textColor="@color/dark_white"
         android:layout_height="wrap_content" />
     </LinearLayout>
 </FrameLayout>

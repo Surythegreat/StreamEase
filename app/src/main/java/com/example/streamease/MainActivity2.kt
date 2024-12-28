@@ -53,12 +53,10 @@ class MainActivity2 : AppCompatActivity() {
     private val blurryView by lazy { binding.blurryView }
     private lateinit var player: ExoPlayer
     private lateinit var trackSelector: DefaultTrackSelector
-    lateinit var savedvideos: MutableList<Video>
     private var currentvideo: Video? = null
     var isInFullscreen = false
     val db = FirebaseFirestore.getInstance()
     val userid = FirebaseAuth.getInstance().currentUser?.uid
-    private var updating = false
     var hassearched = false
     var lastquery = ""
 
@@ -69,7 +67,6 @@ class MainActivity2 : AppCompatActivity() {
         initializePlayer()
         setupNavigation()
         setupSearch()
-        fetchVideos()
         setupBackPressHandler()
     }
 
@@ -77,7 +74,7 @@ class MainActivity2 : AppCompatActivity() {
         binding = ActivityMain2Binding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.logo.setOnClickListener { onLOGOPressed() }
-        savedvideos = mutableListOf()
+
     }
 
     private fun initializePlayer() {
@@ -129,23 +126,9 @@ class MainActivity2 : AppCompatActivity() {
         })
     }
 
-    private fun fetchVideos() {
-        userid?.let { userId ->
-            db.collection("User").document(userId).collection("SAVED").get()
-                .addOnSuccessListener { documents ->
-                    if (!(documents.isEmpty)) {
-                        lifecycleScope.launch {
-                            val videoIds = documents.mapNotNull { it.getLong("videoId")?.toInt() }
-                            val videos = videoIds.map { async { getVideoById(it) } }.awaitAll()
-                            savedvideos.addAll(videos.filterNotNull())
-                            savedScene.updateSaved()
-                        }
-                    } else savedScene.updateSaved()
-                }
-        }
-    }
 
-    private suspend fun getVideoById(videoId: Int): Video? {
+
+    suspend fun getVideoById(videoId: Int): Video? {
         return try {
             RetrofitClient.instance?.api?.getVideo(APIKEY, videoId)?.awaitResponse()
                 ?.takeIf { it.isSuccessful }?.body()
@@ -244,21 +227,7 @@ class MainActivity2 : AppCompatActivity() {
             R.id.navigation_hisNsavV // Update the navigation to reflect the current fragment
     }
 
-    fun removeSavedVideo(position: Int) {
-        if (position in savedvideos.indices) {
-            val video = savedvideos[position]
-            db.collection("User").document(userid!!).collection("SAVED")
-                .document(video.id.toString()).delete()
-                .addOnSuccessListener {
-                    savedvideos.removeAt(position)
-                    savedScene.updateSaved() // Refresh the saved scene to reflect changes
-                    Toast.makeText(this, "Video Removed", Toast.LENGTH_SHORT).show()
-                }
-                .addOnFailureListener {
-                    Toast.makeText(this, "Failed to remove video", Toast.LENGTH_SHORT).show()
-                }
-        }
-    }
+
 
     private fun hideKeyboard() {
         val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
@@ -282,6 +251,7 @@ class MainActivity2 : AppCompatActivity() {
                 hide(videoScreen).hide(profileScene).hide(savedScene)
             }
             .commit()
+        savedScene.arguments = Bundle().apply { putString("id",userid) }
     }
 
     fun strartVideoScene(video: Video) {
@@ -304,19 +274,7 @@ class MainActivity2 : AppCompatActivity() {
     }
 
     fun saveCurrentVideo() {
-        currentvideo?.takeIf { !savedvideos.contains(it) && !updating }?.let {
-            updating = true
-            val videoId = it.id
-            db.collection("User").document(userid!!).collection("SAVED")
-                .document(videoId.toString())
-                .set(mapOf("videoId" to videoId))
-                .addOnSuccessListener { _ ->
-                    Toast.makeText(this, "Video Saved", Toast.LENGTH_SHORT).show()
-                    savedvideos.add(it)
-                    savedScene.updateSaved()
-                    updating = false
-                }.addOnFailureListener { updating = false }
-        }
+        currentvideo?.let { savedScene.saveCurrentVideo(it) }
     }
 
     private fun showFragment(fragment: Scenes) {

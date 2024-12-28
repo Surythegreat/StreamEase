@@ -179,6 +179,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/rounded_card_purple"
+                android:layout_marginBottom="@dimen/general_margin"
                 android:orientation="vertical">
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/commentsRecyclerView"
@@ -211,6 +212,7 @@
                 android:layout_height="wrap_content"
                 android:padding="2dp"
                 android:orientation="vertical"
+                android:layout_margin="@dimen/general_margin"
                 android:background="@color/dark_purple">
 
                 <EditText

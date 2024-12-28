@@ -5,61 +5,82 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:theme="@style/Theme.StreamEase">
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
 
+        android:background="@drawable/background_gradient"
+        android:layout_height="match_parent">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:padding="20dp"
-        android:gravity="center_horizontal"
-        android:background="@drawable/background_gradient">
+        android:gravity="center_horizontal">
 
         <!-- Profile Section -->
-        <LinearLayout
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="20dp"
-            android:elevation="4dp"
+
             android:background="@drawable/rounded_card"
-            android:gravity="center">
+            android:layout_height="wrap_content">
 
-            <!-- User Name -->
-            <TextView
-                android:id="@+id/user_nameN"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/roboto_medium"
-                android:gravity="center"
-                android:text="@string/default_name"
-                android:textColor="@color/white"
-                android:textSize="24sp"
-                android:textStyle="bold" />
+                android:orientation="vertical"
+                android:padding="20dp"
+                android:elevation="4dp"
+                android:gravity="center">
 
-            <!-- User Place -->
-            <TextView
-                android:id="@+id/user_placeN"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/roboto_medium"
-                android:gravity="center"
-                android:text="@string/default_place"
-                android:textColor="@color/light_grey"
-                android:textSize="18sp"
-                android:layout_marginTop="4dp" />
+                <!-- User Name -->
+                <TextView
+                    android:id="@+id/user_nameN"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/roboto_medium"
+                    android:gravity="center"
+                    android:text="@string/default_name"
+                    android:textColor="@color/white"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
 
-            <!-- User Branch -->
-            <TextView
-                android:id="@+id/user_branchN"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                <!-- User Place -->
+                <TextView
+                    android:id="@+id/user_placeN"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/roboto_medium"
+                    android:gravity="center"
+                    android:text="@string/default_place"
+                    android:textColor="@color/light_grey"
+                    android:textSize="18sp"
+                    android:layout_marginTop="4dp" />
+
+                <!-- User Branch -->
+                <TextView
+                    android:id="@+id/user_branchN"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/roboto_medium"
+                    android:gravity="center"
+                    android:text="@string/default_branch"
+                    android:textColor="@color/light_grey"
+                    android:textSize="18sp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:layout_width="80dp"
+                android:layout_height="40dp"
+                android:layout_gravity="end|bottom"
+                android:layout_margin="10dp"
+                android:id="@+id/copy_ID"
+                android:background="@drawable/rounded_card_red"
+                android:text="@string/copy_id"
                 android:fontFamily="@font/roboto_medium"
-                android:gravity="center"
-                android:text="@string/default_branch"
-                android:textColor="@color/light_grey"
-                android:textSize="18sp"
-                android:layout_marginTop="4dp" />
-        </LinearLayout>
+                android:textColor="@color/dark_white"
+                android:textSize="11sp" />
+        </FrameLayout>
         <!-- Button Section -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -102,7 +123,89 @@
                 android:textColor="@color/white"
                 android:fontFamily="@font/roboto_medium"
                 android:textSize="16sp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="2dp"
+                android:orientation="vertical"
+                android:layout_margin="@dimen/general_margin"
+                android:background="@color/secondary_color">
+
+                <EditText
+                    android:autofillHints="name"
+                    android:id="@+id/QueryEdit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/light_black"
+                    android:fontFamily="@font/roboto_medium"
+                    android:hint="@string/enter_id_to_search"
+
+                    android:inputType="text"
+                    android:lines="1"
+                    android:textSize="20sp"
+                    android:theme="@style/Base.Theme.StreamEase" />
+                <androidx.appcompat.widget.AppCompatButton
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/Search_button"
+                    android:text="@string/search"
+                    android:fontFamily="@font/roboto_medium"
+                    android:textColor="@color/dark_white"
+                    android:backgroundTint="@color/light_black"/>
+
+            </LinearLayout>
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:background="@color/lighter_black"
+                android:orientation="vertical">
+
+                <!-- User Information Section -->
+                <LinearLayout
+                    android:id="@+id/user_info_section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/tv_user_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Name: "
+                        android:textColor="@color/dark_white"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tv_user_place"
+                        android:layout_width="wrap_content"
+
+                        android:textColor="@color/dark_white"
+                        android:layout_height="wrap_content"
+                        android:text="Place: "
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/tv_user_branch"
+                        android:layout_width="wrap_content"
+
+                        android:textColor="@color/dark_white"
+                        android:layout_height="wrap_content"
+                        android:text="Branch: "
+                        android:textSize="18sp" />
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/userHolder"/>
+                </LinearLayout>
+
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 </FrameLayout>
