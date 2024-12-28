@@ -300,7 +300,7 @@ class VideoScreen : Scenes() {
         setupPreviewImages()
         setupLikeDislike()
         setupSearchVid()
-
+        commentsList.clear()
         val recyclerView = binding.commentsRecyclerView
         val commentEditText = binding.commentEditText
         val postCommentButton = binding.postCommentButton
