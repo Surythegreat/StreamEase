@@ -64,26 +64,36 @@ class ProfileView : Scenes() {
     }
 
     private fun SearchId() {
+        if (binding.QueryEdit.text.isNullOrEmpty()){return}
+        val idRegex = Regex("^[a-zA-Z0-9_-]{1,}$") // Alphanumeric, underscores, and hyphens
+        if (!idRegex.matches(binding.QueryEdit.text.toString())) {
+            Toast.makeText(mainActivity2, "Invalid User ID format", Toast.LENGTH_SHORT).show()
+            return
+        }
         Firebase.firestore.collection("User").document(binding.QueryEdit.text.toString()).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     binding.userInfoSection.visibility= View.VISIBLE
-                    val name = document.getString("name") ?: "Unknown"
-                    val place = document.getString("place") ?: "Unknown"
-                    val branch = document.getString("branch") ?: "Unknown"
+                    val name = document.getString("Name") ?: "Unknown"
+                    val place = document.getString("Place") ?: "Unknown"
+                    val branch = document.getString("Branch") ?: "Unknown"
 
-                    binding.tvUserName.text = "Name: $name"
-                    binding.tvUserPlace.text = "Place: $place"
-                    binding.tvUserBranch.text = "Branch: $branch"
+                    "Name: $name".also { binding.tvUserName.text = it }
+                    "Place: $place".also { binding.tvUserPlace.text = it }
+                    "Branch: $branch".also { binding.tvUserBranch.text = it }
 
                     val childFragment: Fragment = SavedVideos()
-
+                    childFragment.arguments =Bundle().apply { putString("id",binding.QueryEdit.text.toString())
+                    putBoolean("isfree",false)}
                     val transaction: FragmentTransaction = childFragmentManager.beginTransaction()
                     transaction.replace(R.id.userHolder, childFragment).commit()
+                }else{
+                    Toast.makeText(mainActivity2, "NO USER FOUND", Toast.LENGTH_SHORT).show()
+
                 }
             }
             .addOnFailureListener { e ->
-                Toast.makeText(activity, "Failed to fetch user data: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(mainActivity2, "Failed to fetch user data: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 

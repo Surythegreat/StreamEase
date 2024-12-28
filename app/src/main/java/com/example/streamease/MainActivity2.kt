@@ -8,11 +8,9 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.SearchView
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.TrackSelectionParameters
@@ -29,9 +27,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import io.github.hyuwah.draggableviewlib.DraggableView
 import io.github.hyuwah.draggableviewlib.setupDraggable
 import jp.wasabeef.blurry.Blurry
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.launch
 import retrofit2.awaitResponse
 
 @OptIn(UnstableApi::class)
@@ -251,7 +246,8 @@ class MainActivity2 : AppCompatActivity() {
                 hide(videoScreen).hide(profileScene).hide(savedScene)
             }
             .commit()
-        savedScene.arguments = Bundle().apply { putString("id",userid) }
+        savedScene.arguments = Bundle().apply { putString("id",userid)
+        putBoolean("isfree",true)}
     }
 
     fun strartVideoScene(video: Video) {
@@ -306,6 +302,11 @@ class MainActivity2 : AppCompatActivity() {
             nav.visibility = View.VISIBLE
             binding.topView.visibility = View.VISIBLE
         }
+    }
+
+    fun updateSavedRemoveAt(position: Int) {
+        savedScene.savedvideos.removeAt(position)
+        savedScene.updateSaved()
     }
 
     companion object {

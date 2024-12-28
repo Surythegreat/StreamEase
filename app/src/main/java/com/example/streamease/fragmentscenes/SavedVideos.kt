@@ -30,6 +30,7 @@ class SavedVideos : Scenes() {
 
     lateinit var savedvideos: MutableList<Video>
     var userid:String?=null
+    var isFree:Boolean=true
 
     override fun navid(): Int {
         return R.id.navigation_hisNsavV
@@ -44,18 +45,21 @@ class SavedVideos : Scenes() {
         mainActivity =activity as MainActivity2
         savedvideos = mutableListOf()
         userid = arguments?.getString("id")
-        fetchVideos()
+        isFree= arguments?.getBoolean("isfree") ?:false
+        fetchVideos( )
         // Inflate the layout for this fragment
         return binding.root
     }
     fun removeSavedVideo(position: Int) {
         if (position in savedvideos.indices) {
             val video = savedvideos[position]
-                Firebase.firestore.collection("User").document(userid!!).collection("SAVED")
+            Firebase.firestore.collection("User").document(userid!!).collection("SAVED")
                 .document(video.id.toString()).delete()
                 .addOnSuccessListener {
                     savedvideos.removeAt(position)
-                    updateSaved() // Refresh the saved scene to reflect changes
+                    updateSaved()
+                    mainActivity.updateSavedRemoveAt(position)
+                    // Refresh the saved scene to reflect changes
                     Toast.makeText(mainActivity, "Video Removed", Toast.LENGTH_SHORT).show()
                 }
                 .addOnFailureListener {
@@ -78,14 +82,17 @@ class SavedVideos : Scenes() {
                 }
         }
     }
+    private var isup=false
     fun updateSaved() {
+        if (isup)return
+        isup=true
         if(savedvideos.size==0){
             binding.noVideo.visibility=View.VISIBLE
             binding.recycleview.adapter = MyAdapter(mainActivity, listOf(), true)
         }else {
             binding.noVideo.visibility = View.GONE
 
-            val adapter = MyAdapter(mainActivity,savedvideos, true)
+            val adapter = MyAdapter(mainActivity,savedvideos,isFree )
             adapter.setOnItemcloseClickListner(object : MyAdapter.OnItemClickListner {
                 override fun onItemClick(position: Int) {
                     removeSavedVideo(position)
@@ -101,10 +108,11 @@ class SavedVideos : Scenes() {
 
             })
         }
+        isup=false
     }
     private var updating = false
     fun saveCurrentVideo(currentvideo: Video) {
-        currentvideo?.takeIf { !savedvideos.contains(it) && !updating }?.let {
+        currentvideo.takeIf { !savedvideos.contains(it) && !updating }?.let {
             updating = true
             val videoId = it.id
             Firebase.firestore.collection("User").document(userid!!).collection("SAVED")
