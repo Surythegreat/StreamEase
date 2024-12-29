@@ -157,6 +157,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/previws"
                     android:textSize="@dimen/smal_title_Size"
+                    android:layout_margin="8dp"
                     android:textColor="@color/dark_white"
                     android:fontFamily="@font/roboto_medium"
                     android:paddingBottom="@dimen/general_pading"
@@ -164,6 +165,7 @@
 
             <HorizontalScrollView
                 android:layout_width="match_parent"
+                android:layout_margin="4dp"
                 android:layout_height="wrap_content"
                 >
 
@@ -178,13 +180,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/rounded_card_purple"
-                android:layout_marginBottom="@dimen/general_margin"
+                android:layout_margin="@dimen/general_margin"
                 android:orientation="vertical">
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/commentsRecyclerView"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
+                android:layout_height="300dp"
+                />
 
             <LinearLayout
                 android:layout_width="match_parent"

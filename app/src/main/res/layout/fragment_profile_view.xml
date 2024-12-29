@@ -80,6 +80,14 @@
                 android:fontFamily="@font/roboto_medium"
                 android:textColor="@color/dark_white"
                 android:textSize="11sp" />
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/edit_button"
+                android:layout_gravity="top|end"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_edituserdata"
+                android:layout_margin="10dp" />
         </FrameLayout>
         <!-- Button Section -->
         <LinearLayout
@@ -92,37 +100,9 @@
             android:gravity="center_horizontal"
             android:padding="10dp">
 
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/edit_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/rounded_button"
-                android:text="@string/edit_details"
-                android:textColor="@color/white"
-                android:fontFamily="@font/roboto_medium"
-                android:textSize="16sp"
-                android:layout_marginBottom="10dp" />
 
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/See_saved"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/rounded_button_secondary"
-                android:text="@string/see_saved_videos"
-                android:textColor="@color/white"
-                android:fontFamily="@font/roboto_medium"
-                android:textSize="16sp"
-                android:layout_marginBottom="10dp" />
 
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/SignOutButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/rounded_button_red"
-                android:text="@string/sign_out"
-                android:textColor="@color/white"
-                android:fontFamily="@font/roboto_medium"
-                android:textSize="16sp" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -207,4 +187,13 @@
 
     </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+    <androidx.appcompat.widget.AppCompatImageView
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:id="@+id/SignOutButton"
+        android:background="@drawable/rounded_button_red"
+        android:layout_margin="20dp"
+        android:layout_gravity="bottom|end"
+        android:src="@drawable/baseline_logout_24"
+        android:textSize="16sp" />
 </FrameLayout>

@@ -40,7 +40,6 @@ class MainActivity2 : AppCompatActivity() {
     private val profileScene = ProfileView()
     private val savedScene = SavedVideos()
     private var activeFragment: Scenes = mainScene
-    private var previusScene: Scenes? = null
     private val searchContainer by lazy { binding.searchContainer }
     private val videosearch by lazy { binding.videoSearch }
     private val cancelButton by lazy { binding.cancelButton }
@@ -114,8 +113,8 @@ class MainActivity2 : AppCompatActivity() {
                 when {
                     searchContainer.visibility == View.VISIBLE -> toggleSearch()
                     isInFullscreen -> videoScreen.fullscreenButton.callOnClick()
-                    previusScene == null -> finish()
-                    else -> showFragment(previusScene!!)
+                    activeFragment != mainScene ->showFragment(mainScene)
+                    else -> finish()
                 }
             }
         })
@@ -279,7 +278,6 @@ class MainActivity2 : AppCompatActivity() {
             hide(activeFragment)
             show(fragment)
         }.commit()
-        previusScene = activeFragment
         activeFragment.onMovedFrom()
         activeFragment = fragment
         activeFragment.onMovedto()

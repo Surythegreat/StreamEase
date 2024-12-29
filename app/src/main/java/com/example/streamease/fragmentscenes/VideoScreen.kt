@@ -332,6 +332,8 @@ class VideoScreen : Scenes() {
                 }
 
                 adapter.notifyDataSetChanged()
+                binding.commentsRecyclerView.scrollToPosition((binding.commentsRecyclerView.adapter?.itemCount
+                    ?: 1) - 1)
             }
 
 // Post a new comment
@@ -389,7 +391,10 @@ class VideoScreen : Scenes() {
                 Toast.makeText(requireContext(), "Failed to fetch user details. Try again.", Toast.LENGTH_SHORT).show()
                 postCommentButton.isEnabled = true
             }
+            binding.commentsRecyclerView.scrollToPosition((binding.commentsRecyclerView.adapter?.itemCount
+                ?: 1) - 1)
         }
+
 
     }
     private var isDeleteInProgress = false // Flag to track delete operations
@@ -446,6 +451,9 @@ class VideoScreen : Scenes() {
                     isDeleteInProgress = false // Reset the flag once the operation is complete
                 }
         }
+
+        binding.commentsRecyclerView.scrollToPosition((binding.commentsRecyclerView.adapter?.itemCount
+            ?: 1) - 1)
     }
 
 

@@ -55,7 +55,6 @@ class ProfileView : Scenes() {
         nameL = binding.userNameN
         placeL = binding.userPlaceN
         branchL = binding.userBranchN
-        binding.SeeSaved.setOnClickListener { mainActivity2.showSavedScene() }
         binding.SignOutButton.setOnClickListener { mainActivity2.logout() }
         binding.copyID.setOnClickListener{copyTheID()}
         binding.SearchButton.setOnClickListener{SearchId()}
