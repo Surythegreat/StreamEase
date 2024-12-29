@@ -56,9 +56,9 @@ class SavedVideos : Scenes() {
             Firebase.firestore.collection("User").document(userid!!).collection("SAVED")
                 .document(video.id.toString()).delete()
                 .addOnSuccessListener {
+
                     savedvideos.removeAt(position)
                     updateSaved()
-                    mainActivity.updateSavedRemoveAt(position)
                     // Refresh the saved scene to reflect changes
                     Toast.makeText(mainActivity, "Video Removed", Toast.LENGTH_SHORT).show()
                 }
@@ -112,18 +112,43 @@ class SavedVideos : Scenes() {
     }
     private var updating = false
     fun saveCurrentVideo(currentvideo: Video) {
-        currentvideo.takeIf { !savedvideos.contains(it) && !updating }?.let {
-            updating = true
-            val videoId = it.id
+        if ( !savedvideos.contains(currentvideo) && !updating ) {
+            currentvideo.let {
+                updating = true
+                val videoId = it.id
+                Firebase.firestore.collection("User").document(userid!!).collection("SAVED")
+                    .document(videoId.toString())
+                    .set(mapOf("videoId" to videoId))
+                    .addOnSuccessListener { _ ->
+                        Toast.makeText(mainActivity, "Video Saved", Toast.LENGTH_SHORT).show()
+                        savedvideos.add(it)
+                        updateSaved()
+                        mainActivity.onVideoSaved(it)
+                        updating = false
+                    }.addOnFailureListener { updating = false }
+            }
+        }else if(!updating){
+            mainActivity.onVideoSaved(currentvideo)
+        }
+    }
+
+    fun removeSavedVideoID(video:Video) {
+
+        if (savedvideos.contains(video)) {
             Firebase.firestore.collection("User").document(userid!!).collection("SAVED")
-                .document(videoId.toString())
-                .set(mapOf("videoId" to videoId))
-                .addOnSuccessListener { _ ->
-                    Toast.makeText(mainActivity, "Video Saved", Toast.LENGTH_SHORT).show()
-                    savedvideos.add(it)
+                .document(video.id.toString()).delete()
+                .addOnSuccessListener {
+                    savedvideos.remove(video)
                     updateSaved()
-                    updating = false
-                }.addOnFailureListener { updating = false }
+                    mainActivity.onVideoRemoved(video)
+                    // Refresh the saved scene to reflect changes
+                    Toast.makeText(mainActivity, "Video Removed", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener {
+                    Toast.makeText(mainActivity, "Failed to remove video", Toast.LENGTH_SHORT).show()
+                }
+        }else{
+            Toast.makeText(mainActivity, "Failed to remove video", Toast.LENGTH_SHORT).show()
         }
     }
 }

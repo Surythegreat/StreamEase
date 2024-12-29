@@ -133,6 +133,17 @@
                         android:textSize="18sp"
                         android:textColor="@color/dark_white" />
                 </LinearLayout>
+                <ImageView
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:layout_marginStart="20dp"
+                    android:layout_margin="@dimen/general_margin"
+                    android:src="@drawable/ussaved"
+                    android:background="@color/transparent"
+                    android:id="@+id/Save"
+                    />
 
             </LinearLayout>
 
@@ -162,19 +173,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal" />
             </HorizontalScrollView>
-            <androidx.appcompat.widget.AppCompatButton
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/save_video"
-                android:layout_margin="@dimen/general_margin"
-                android:padding="@dimen/general_pading"
-                android:textSize="@dimen/smal_title_Size"
-                android:id="@+id/Save"
-                android:backgroundTint="@color/light_purple"
-                android:textColor="@color/dark_white"
-                android:fontFamily="@font/roboto_medium"
-                android:paddingBottom="@dimen/general_pading"
-                android:textStyle="bold"/>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -184,7 +183,7 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/commentsRecyclerView"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
+                android:layout_height="0dp"
                 android:layout_weight="1" />
 
             <LinearLayout

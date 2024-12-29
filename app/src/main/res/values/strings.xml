@@ -2,7 +2,7 @@
     <string name="app_name">StreamEase</string>
     <string name="select_quality">Select Quality</string>
     <string name="cancel">Cancel</string>
-    <string name="previws">PREVIWS:</string>
+    <string name="previws">Previews:</string>
     <string name="not_yet_registered_signup">Not yet registered? Signup</string>
     <string name="login">Login</string>
     <string name="password">Password</string>

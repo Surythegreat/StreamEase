@@ -264,8 +264,8 @@ class MainActivity2 : AppCompatActivity() {
                 putStringArrayList(KEY_PICTURES, ArrayList(video.video_pictures.map { it.picture }))
             }
             videoScreen.arguments = bundle
-            showFragment(videoScreen)
             currentvideo = video
+            showFragment(videoScreen)
         }
     }
 
@@ -304,9 +304,26 @@ class MainActivity2 : AppCompatActivity() {
         }
     }
 
-    fun updateSavedRemoveAt(position: Int) {
-        savedScene.savedvideos.removeAt(position)
-        savedScene.updateSaved()
+
+
+    fun onVideoSaved(video: Video) {
+        if(video==currentvideo){
+            videoScreen.onVideoSaved()
+        }
+    }
+
+    fun isSaved(): Boolean {
+        return savedScene.savedvideos.contains(currentvideo)
+    }
+
+    fun RemoveVideo() {
+        currentvideo?.let { savedScene.removeSavedVideoID(it) }
+    }
+
+    fun onVideoRemoved(video: Video) {
+        if(video==currentvideo){
+            videoScreen.onVideoRemoved()
+        }
     }
 
     companion object {

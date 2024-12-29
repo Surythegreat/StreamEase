@@ -89,8 +89,8 @@ class VideoScreen : Scenes() {
         return R.id.navigation_videoplay
     }
     private val commentsList = mutableListOf<Comment>()
-
-    private var videoId = 0;
+    private var isSaved:Boolean=false
+    private var videoId = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -117,7 +117,9 @@ class VideoScreen : Scenes() {
         qualityTrackLayout = qualityLayout.findViewById(R.id.quality_track)
         playerView.findViewById<ImageButton>(R.id.miniplayer_button)
             .setOnClickListener { sendData() }
-        binding.Save.setOnClickListener { (activity as MainActivity2).saveCurrentVideo() }
+        binding.Save.setOnClickListener {if(!isSaved){ (activity as MainActivity2).saveCurrentVideo()
+        }else{ (activity as MainActivity2).RemoveVideo()}
+            binding.likeDislikeLoading.visibility = View.VISIBLE}
         playerView.player = player
         setupFullscreenHandler()
 
@@ -480,12 +482,14 @@ class VideoScreen : Scenes() {
         videoId.let { fetchVideoData(it) }
 
         likeButton.setOnClickListener {
-            videoId.let { updateLikeDislike(it, "likes") } ?: Toast.makeText(context, "Invalid video ID", Toast.LENGTH_SHORT).show()
+            updateLikeDislike(videoId, "likes")
         }
 
         dislikeButton.setOnClickListener {
-            videoId.let { updateLikeDislike(it, "dislikes") } ?: Toast.makeText(context, "Invalid video ID", Toast.LENGTH_SHORT).show()
+            updateLikeDislike(videoId, "dislikes")
         }
+        isSaved = (activity as MainActivity2).isSaved()
+        binding.Save.setImageResource(if (isSaved){R.drawable.saved}else{R.drawable.ussaved})
     }
 
     @OptIn(UnstableApi::class)
@@ -689,5 +693,17 @@ class VideoScreen : Scenes() {
         super.onDestroy()
         player?.release()
         player = null
+    }
+
+    fun onVideoSaved() {
+        binding.likeDislikeLoading.visibility =View.GONE
+        binding.Save.setImageResource(R.drawable.saved)
+        isSaved =true
+    }
+
+    fun onVideoRemoved() {
+        binding.likeDislikeLoading.visibility =View.GONE
+        binding.Save.setImageResource(R.drawable.ussaved)
+        isSaved=false
     }
 }
