@@ -57,7 +57,7 @@ class ProfileView : Scenes() {
         branchL = binding.userBranchN
         binding.SignOutButton.setOnClickListener { mainActivity2.logout() }
         binding.ShareId.setOnClickListener{mainActivity2.shareUser()}
-
+        binding.profileClose.setOnClickListener{binding.userInfoSection.visibility=View.GONE}
         return binding.root
     }
 

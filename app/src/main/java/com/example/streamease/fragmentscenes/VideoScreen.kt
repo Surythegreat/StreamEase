@@ -62,6 +62,10 @@ class VideoScreen : Scenes() {
     private var minUrl: String? = null
     private lateinit var binding: FragmentVideoScreenBinding
     private var player: ExoPlayer? = null
+        set(value) {
+            Toast.makeText(mainActivity, "player changed", Toast.LENGTH_LONG).show()
+            field = value
+        }
     private lateinit var playerView: PlayerView
     private lateinit var qualityButton: Button
     private lateinit var qualityDialog: AlertDialog
@@ -100,13 +104,6 @@ class VideoScreen : Scenes() {
     ): View {
         binding = FragmentVideoScreenBinding.inflate(inflater, container, false)
 
-
-        return binding.root
-    }
-
-    @SuppressLint("InflateParams")
-    override fun onStart() {
-        super.onStart()
         (mainActivity)=(activity as MainActivity2)
         photosLayout = binding.photos
         playerView = binding.videoView
@@ -115,7 +112,7 @@ class VideoScreen : Scenes() {
         trackSelector = DefaultTrackSelector((mainActivity))
         player = ExoPlayer.Builder((mainActivity)).setTrackSelector(trackSelector).build()
 
-        qualityLayout = layoutInflater.inflate(R.layout.qualitytrack, null)
+        qualityLayout = LayoutInflater.from(mainActivity).inflate(R.layout.qualitytrack, null)
         qualityTrackLayout = qualityLayout.findViewById(R.id.quality_track)
         playerView.findViewById<ImageButton>(R.id.miniplayer_button)
             .setOnClickListener { sendData() }
@@ -129,15 +126,17 @@ class VideoScreen : Scenes() {
         dislikeButton = binding.dislikeButton
         likeCount = binding.likeCount
         dislikeCount = binding.dislikeCount
-        
+
         binding.Share.setOnClickListener{mainActivity.shareVideoLink(videoId)}
+        return binding.root
     }
 
-    override fun onResume() {
-        super.onResume()
-        onMovedto()
-    }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        player?.release()
+        player = null
+    }
     private var isUpdating = false
         set(value) {
             binding.likeDislikeLoading.visibility = if (value) View.VISIBLE else View.GONE
@@ -291,18 +290,20 @@ class VideoScreen : Scenes() {
             }
         }
     }
-
+    var isSameVideo:Boolean=false;
     override fun onMovedto() {
         videoUrls = arguments?.getStringArrayList(MainActivity2.KEY_VIDEO_LINKS)
         videoQualities = arguments?.getStringArrayList(MainActivity2.KEY_VIDEO_QUALITY)
 
-        videoId = arguments?.getInt(MainActivity2.KEY_VIDEO_IDS)?:0
+        val v = arguments?.getInt(MainActivity2.KEY_VIDEO_IDS)?:0
+        isSameVideo=(v==videoId)
+        videoId=v
         binding.appBarLayout.visibility = if (videoUrls.isNullOrEmpty()) View.GONE else View.VISIBLE
         binding.DetailsContainer.visibility = if (videoUrls.isNullOrEmpty()) View.GONE else View.VISIBLE
 
-        setupPlayer()
         setupVideoTitle()
         setupQualitySelector()
+        setupPlayer()
         setupPreviewImages()
         setupLikeDislike()
         setupSearchVid()
@@ -402,7 +403,14 @@ class VideoScreen : Scenes() {
 
     }
     private var isDeleteInProgress = false // Flag to track delete operations
-
+    private var playbackPosition: Long = 0L
+    private var previusmediaitempos: Int?=null
+    override fun onMovedFrom() {
+        super.onMovedFrom()
+        playbackPosition = player?.currentPosition ?: 0L
+        player?.pause()
+        playerView.player = null
+    }
     private fun closeComment(position: Int) {
         Log.d("Comments", "Attempting to delete comment at position $position")
 
@@ -511,19 +519,31 @@ class VideoScreen : Scenes() {
             return
         }
 
+
         minUrl = arguments?.getString(MainActivity2.KEY_MIN_VIDEO)
         if ((mainActivity).miniplayerurl == minUrl && isMiniPlayerActive) return
 
         val uri = Uri.parse(minUrl)
         val mediaItem = MediaItem.fromUri(uri)
+        var minitempos=0
+        mediaItemList.clear()
 
         videoUrls?.forEachIndexed { index, url ->
-            if (minUrl == url) minQuality = videoQualities?.get(index)
+            if (minUrl == url) {minQuality = videoQualities?.get(index)
+            minitempos=index}
             mediaItemList.add(MediaItem.fromUri(Uri.parse(url)))
         }
-
         playerView.player = player
-        player?.setMediaItem(mediaItem)
+        if (!isSameVideo) {
+            player?.setMediaItem(mediaItem)
+            previusmediaitempos = minitempos
+            "Quality: $minQuality".also { qualityButton.text = it }
+        }
+        else{
+            player?.setMediaItem(mediaItemList[previusmediaitempos!!])
+            qualityButton.text = "Quality"+ (videoQualities?.get(previusmediaitempos!!) ?: "")
+            player?.seekTo(playbackPosition)
+        }
         player?.prepare()
         player?.playWhenReady = true
     }
@@ -540,11 +560,7 @@ class VideoScreen : Scenes() {
         playerView.player = null
     }
 
-    override fun onMovedFrom() {
-        super.onMovedFrom()
-        player?.pause()
-        playerView.player = null
-    }
+
 
     private fun setupVideoTitle() {
         val url: String? = arguments?.getString("url")
@@ -553,7 +569,7 @@ class VideoScreen : Scenes() {
     }
 
     private fun setupQualitySelector() {
-        "Quality: $minQuality".also { qualityButton.text = it }
+
         qualityTrackLayout.removeAllViews()
 
         videoQualities?.forEachIndexed { index, quality ->
@@ -567,7 +583,9 @@ class VideoScreen : Scenes() {
         "Audio-Only".also { audioOnlyButton.text = it }
         audioOnlyButton.setOnClickListener { audioOnlyButtonPressed() }
         qualityTrackLayout.addView(audioOnlyButton)
-
+        if (qualityLayout.parent != null) {
+            (qualityLayout.parent as ViewGroup).removeView(qualityLayout)
+        }
         qualityDialog = AlertDialog.Builder(mainActivity)
             .setView(qualityLayout)
             .create()
@@ -600,6 +618,7 @@ class VideoScreen : Scenes() {
 
         val position = player?.currentPosition ?: 0
         player?.setMediaItem(mediaItemList[index])
+        previusmediaitempos =index
         player?.prepare()
         player?.seekTo(position)
         player?.playWhenReady = true
@@ -701,11 +720,7 @@ class VideoScreen : Scenes() {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        player?.release()
-        player = null
-    }
+
 
     fun onVideoSaved() {
         binding.likeDislikeLoading.visibility =View.GONE

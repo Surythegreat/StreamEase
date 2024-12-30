@@ -66,6 +66,7 @@ class MainActivity2 : AppCompatActivity() {
     var hassearched = false
     var lastquery = ""
 
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
