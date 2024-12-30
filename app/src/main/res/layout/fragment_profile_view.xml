@@ -69,21 +69,20 @@
                     android:layout_marginTop="4dp" />
             </LinearLayout>
 
-            <androidx.appcompat.widget.AppCompatButton
-                android:layout_width="80dp"
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_gravity="end|bottom"
                 android:layout_margin="10dp"
-                android:id="@+id/copy_ID"
-                android:background="@drawable/rounded_card_red"
-                android:text="@string/copy_id"
-                android:fontFamily="@font/roboto_medium"
-                android:textColor="@color/dark_white"
-                android:textSize="11sp" />
+                android:id="@+id/Share_id"
+                android:padding="2dp"
+                android:src="@drawable/ic_share"
+                android:background="@drawable/rounded_card_red"/>
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/edit_button"
                 android:layout_gravity="top|end"
+                android:background="@drawable/rounded_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_edituserdata"
@@ -100,40 +99,6 @@
             android:gravity="center_horizontal"
             android:padding="10dp">
 
-
-
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="2dp"
-                android:orientation="vertical"
-                android:layout_margin="@dimen/general_margin"
-                android:background="@color/secondary_color">
-
-                <EditText
-                    android:autofillHints="name"
-                    android:id="@+id/QueryEdit"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@color/light_black"
-                    android:fontFamily="@font/roboto_medium"
-                    android:hint="@string/enter_id_to_search"
-
-                    android:inputType="text"
-                    android:lines="1"
-                    android:textSize="20sp"
-                    android:theme="@style/Base.Theme.StreamEase" />
-                <androidx.appcompat.widget.AppCompatButton
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:id="@+id/Search_button"
-                    android:text="@string/search"
-                    android:fontFamily="@font/roboto_medium"
-                    android:textColor="@color/dark_white"
-                    android:backgroundTint="@color/light_black"/>
-
-            </LinearLayout>
             <LinearLayout                android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 xmlns:tools="http://schemas.android.com/tools"

@@ -56,20 +56,19 @@ class ProfileView : Scenes() {
         placeL = binding.userPlaceN
         branchL = binding.userBranchN
         binding.SignOutButton.setOnClickListener { mainActivity2.logout() }
-        binding.copyID.setOnClickListener{copyTheID()}
-        binding.SearchButton.setOnClickListener{SearchId()}
+        binding.ShareId.setOnClickListener{mainActivity2.shareUser()}
 
         return binding.root
     }
 
-    private fun SearchId() {
-        if (binding.QueryEdit.text.isNullOrEmpty()){return}
+     fun SearchId(userId:String? ) {
+        if (userId.isNullOrEmpty()){return}
         val idRegex = Regex("^[a-zA-Z0-9_-]{1,}$") // Alphanumeric, underscores, and hyphens
-        if (!idRegex.matches(binding.QueryEdit.text.toString())) {
+        if (!idRegex.matches(userId)) {
             Toast.makeText(mainActivity2, "Invalid User ID format", Toast.LENGTH_SHORT).show()
             return
         }
-        Firebase.firestore.collection("User").document(binding.QueryEdit.text.toString()).get()
+        Firebase.firestore.collection("User").document(userId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     binding.userInfoSection.visibility= View.VISIBLE
@@ -82,7 +81,7 @@ class ProfileView : Scenes() {
                     "Branch: $branch".also { binding.tvUserBranch.text = it }
 
                     val childFragment: Fragment = SavedVideos()
-                    childFragment.arguments =Bundle().apply { putString("id",binding.QueryEdit.text.toString())
+                    childFragment.arguments =Bundle().apply { putString("id",userId)
                     putBoolean("isfree",false)}
                     val transaction: FragmentTransaction = childFragmentManager.beginTransaction()
                     transaction.replace(R.id.userHolder, childFragment).commit()
@@ -94,15 +93,6 @@ class ProfileView : Scenes() {
             .addOnFailureListener { e ->
                 Toast.makeText(mainActivity2, "Failed to fetch user data: ${e.message}", Toast.LENGTH_SHORT).show()
             }
-    }
-
-    private fun copyTheID(){
-        val clipboard = getSystemService(mainActivity2,ClipboardManager::class.java)
-        val clip = ClipData.newPlainText("ID", mainActivity2.userid)
-        if (clipboard != null) {
-            clipboard.setPrimaryClip(clip)
-        }
-
     }
     private fun setupProfileEditDialog() {
         val lay = layoutInflater.inflate(R.layout.edit_details, null)

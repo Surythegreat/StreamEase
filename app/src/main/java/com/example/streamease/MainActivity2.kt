@@ -93,12 +93,47 @@ class MainActivity2 : AppCompatActivity() {
                                     }
                                 }
                             }
+                            val userId = deepLink.getQueryParameter("userid")
+                            if (userId != null) {
+                                showUser(userId)
+                            }
                         }
                     }
                 }
                     .addOnFailureListener{
                         e -> Log.w("DynamicLink", "Error retrieving link", e)};
 
+    }
+
+    private fun showUser(userId: String) {
+        showFragment(profileScene)
+        profileScene.SearchId(userId)
+    }
+
+    fun shareUser() {
+        FirebaseDynamicLinks.getInstance().createDynamicLink()
+            .setLink(Uri.parse("https://streamease.com/user?userid=$userid"))
+            .setDomainUriPrefix("https://streamease.page.link")
+            .setAndroidParameters(AndroidParameters.Builder().build())
+            .buildShortDynamicLink()
+            .addOnSuccessListener { shortDynamicLink: ShortDynamicLink ->
+                val shortLink = shortDynamicLink.shortLink
+                val shareIntent = Intent()
+                shareIntent.setAction(Intent.ACTION_SEND)
+                shareIntent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    "See Me on StreamEase: " + shortLink.toString()
+                )
+                shareIntent.setType("text/plain")
+                startActivity(Intent.createChooser(shareIntent, "Share via"))
+            }
+            .addOnFailureListener { e: java.lang.Exception? ->
+                Log.e(
+                    "DynamicLink",
+                    "Error creating link",
+                    e
+                )
+            }
     }
 
     fun shareVideoLink(videoId: Int) {
