@@ -2,6 +2,7 @@ package com.example.streamease
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -11,23 +12,34 @@ import android.widget.SearchView
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.TrackSelectionParameters
+import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
-import com.example.streamease.fragmentscenes.*
-import com.example.streamease.models.Video
 import com.example.streamease.databinding.ActivityMain2Binding
+import com.example.streamease.fragmentscenes.MainScene
+import com.example.streamease.fragmentscenes.ProfileView
+import com.example.streamease.fragmentscenes.SavedVideos
+import com.example.streamease.fragmentscenes.Scenes
+import com.example.streamease.fragmentscenes.VideoScreen
 import com.example.streamease.helper.RetrofitClient
+import com.example.streamease.models.Video
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.dynamiclinks.DynamicLink.AndroidParameters
+import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
+import com.google.firebase.dynamiclinks.ShortDynamicLink
 import com.google.firebase.firestore.FirebaseFirestore
 import io.github.hyuwah.draggableviewlib.DraggableView
 import io.github.hyuwah.draggableviewlib.setupDraggable
 import jp.wasabeef.blurry.Blurry
+import kotlinx.coroutines.launch
 import retrofit2.awaitResponse
+
 
 @OptIn(UnstableApi::class)
 class MainActivity2 : AppCompatActivity() {
@@ -57,11 +69,62 @@ class MainActivity2 : AppCompatActivity() {
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
+
         initializeBindings()
         initializePlayer()
         setupNavigation()
         setupSearch()
         setupBackPressHandler()
+        FirebaseDynamicLinks.getInstance()
+            .getDynamicLink(getIntent())
+            .addOnSuccessListener { pendingDynamicLinkData ->
+
+                    if (pendingDynamicLinkData != null) {
+                        val deepLink: Uri? = pendingDynamicLinkData.getLink();
+                        if (deepLink != null) {
+                            val videoId = deepLink . getQueryParameter ("id");
+                            if (videoId != null) {
+                                lifecycleScope.launch {
+                                    val video: Video? = getVideoById(videoId.toInt())
+                                    if (video != null) {
+                                        strartVideoScene(video)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                    .addOnFailureListener{
+                        e -> Log.w("DynamicLink", "Error retrieving link", e)};
+
+    }
+
+    fun shareVideoLink(videoId: Int) {
+        FirebaseDynamicLinks.getInstance().createDynamicLink()
+            .setLink(Uri.parse("https://streamease.com/video?id=$videoId"))
+            .setDomainUriPrefix("https://streamease.page.link")
+            .setAndroidParameters(AndroidParameters.Builder().build())
+            .buildShortDynamicLink()
+            .addOnSuccessListener { shortDynamicLink: ShortDynamicLink ->
+                val shortLink = shortDynamicLink.shortLink
+                val shareIntent = Intent()
+                shareIntent.setAction(Intent.ACTION_SEND)
+                shareIntent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    "Check out this video: " + shortLink.toString()
+                )
+                shareIntent.setType("text/plain")
+                startActivity(Intent.createChooser(shareIntent, "Share via"))
+            }
+            .addOnFailureListener { e: java.lang.Exception? ->
+                Log.e(
+                    "DynamicLink",
+                    "Error creating link",
+                    e
+                )
+            }
     }
 
     private fun initializeBindings() {
@@ -215,11 +278,7 @@ class MainActivity2 : AppCompatActivity() {
         imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
     }
 
-    fun showSavedScene() {
-        showFragment(savedScene) // Display the saved videos fragment
-        nav.selectedItemId =
-            R.id.navigation_hisNsavV // Update the navigation to reflect the current fragment
-    }
+
 
 
 

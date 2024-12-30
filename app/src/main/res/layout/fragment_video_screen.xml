@@ -140,10 +140,22 @@
                     android:padding="10dp"
                     android:layout_marginStart="20dp"
                     android:layout_margin="@dimen/general_margin"
+                    android:src="@drawable/ic_share"
+                    android:background="@color/transparent"
+                    android:id="@+id/Share"
+                    />
+                <ImageView
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:layout_marginStart="20dp"
+                    android:layout_margin="@dimen/general_margin"
                     android:src="@drawable/ussaved"
                     android:background="@color/transparent"
                     android:id="@+id/Save"
                     />
+
 
             </LinearLayout>
 

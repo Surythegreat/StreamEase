@@ -46,7 +46,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -77,4 +76,11 @@ dependencies {
     implementation (libs.androidx.media3.ui)
     implementation(libs.draggable.view)
     implementation(libs.blurry)
+
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+
+    // Add the dependencies for the Dynamic Links and Analytics libraries
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation("com.google.firebase:firebase-dynamic-links")
+    implementation ("com.google.firebase:firebase-analytics")
 }

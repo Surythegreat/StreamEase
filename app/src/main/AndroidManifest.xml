@@ -22,7 +22,12 @@
             android:configChanges="orientation|screenSize"
             android:windowSoftInputMode="adjustPan"
             android:label="@string/title_activity_main2" >
-
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:host="streamease.page.link" android:scheme="https" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".Signup"

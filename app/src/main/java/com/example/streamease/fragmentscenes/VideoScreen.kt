@@ -91,6 +91,8 @@ class VideoScreen : Scenes() {
     private val commentsList = mutableListOf<Comment>()
     private var isSaved:Boolean=false
     private var videoId = 0
+    
+    private lateinit var mainActivity: MainActivity2
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -105,20 +107,20 @@ class VideoScreen : Scenes() {
     @SuppressLint("InflateParams")
     override fun onStart() {
         super.onStart()
-
+        (mainActivity)=(activity as MainActivity2)
         photosLayout = binding.photos
         playerView = binding.videoView
         qualityButton = playerView.findViewById(R.id.quality_button)
         titleTextView = binding.titleofplayer
-        trackSelector = DefaultTrackSelector(activity as MainActivity2)
-        player = ExoPlayer.Builder(activity as MainActivity2).setTrackSelector(trackSelector).build()
+        trackSelector = DefaultTrackSelector((mainActivity))
+        player = ExoPlayer.Builder((mainActivity)).setTrackSelector(trackSelector).build()
 
         qualityLayout = layoutInflater.inflate(R.layout.qualitytrack, null)
         qualityTrackLayout = qualityLayout.findViewById(R.id.quality_track)
         playerView.findViewById<ImageButton>(R.id.miniplayer_button)
             .setOnClickListener { sendData() }
-        binding.Save.setOnClickListener {if(!isSaved){ (activity as MainActivity2).saveCurrentVideo()
-        }else{ (activity as MainActivity2).RemoveVideo()}
+        binding.Save.setOnClickListener {if(!isSaved){ (mainActivity).saveCurrentVideo()
+        }else{ (mainActivity).RemoveVideo()}
             binding.likeDislikeLoading.visibility = View.VISIBLE}
         playerView.player = player
         setupFullscreenHandler()
@@ -127,6 +129,8 @@ class VideoScreen : Scenes() {
         dislikeButton = binding.dislikeButton
         likeCount = binding.likeCount
         dislikeCount = binding.dislikeCount
+        
+        binding.Share.setOnClickListener{mainActivity.shareVideoLink(videoId)}
     }
 
     override fun onResume() {
@@ -473,7 +477,7 @@ class VideoScreen : Scenes() {
                         Toast.makeText(activity as MainActivity2, "NO SUCH VIDEOS FOUND", Toast.LENGTH_SHORT).show()
                     } else {
                         p1.body()?.videos?.firstOrNull()?.let {
-                            (activity as MainActivity2).strartVideoScene(it)
+                            (mainActivity).strartVideoScene(it)
                             onMovedto()
                         }
                     }
@@ -496,7 +500,7 @@ class VideoScreen : Scenes() {
         dislikeButton.setOnClickListener {
             updateLikeDislike(videoId, "dislikes")
         }
-        isSaved = (activity as MainActivity2).isSaved()
+        isSaved = (mainActivity).isSaved()
         binding.Save.setImageResource(if (isSaved){R.drawable.saved}else{R.drawable.ussaved})
     }
 
@@ -508,7 +512,7 @@ class VideoScreen : Scenes() {
         }
 
         minUrl = arguments?.getString(MainActivity2.KEY_MIN_VIDEO)
-        if ((activity as MainActivity2).miniplayerurl == minUrl && isMiniPlayerActive) return
+        if ((mainActivity).miniplayerurl == minUrl && isMiniPlayerActive) return
 
         val uri = Uri.parse(minUrl)
         val mediaItem = MediaItem.fromUri(uri)
@@ -528,7 +532,7 @@ class VideoScreen : Scenes() {
     private fun sendData() {
         minUrl?.let { it2 ->
             player?.let {
-                (activity as MainActivity2).onPlayerLaunch(it2, it.currentPosition, it.isPlaying, isAudioOnly)
+                (mainActivity).onPlayerLaunch(it2, it.currentPosition, it.isPlaying, isAudioOnly)
             }
         }
         isMiniPlayerActive = true
@@ -564,7 +568,7 @@ class VideoScreen : Scenes() {
         audioOnlyButton.setOnClickListener { audioOnlyButtonPressed() }
         qualityTrackLayout.addView(audioOnlyButton)
 
-        qualityDialog = AlertDialog.Builder(activity as MainActivity2)
+        qualityDialog = AlertDialog.Builder(mainActivity)
             .setView(qualityLayout)
             .create()
 
@@ -576,7 +580,7 @@ class VideoScreen : Scenes() {
 
     @OptIn(UnstableApi::class)
     private fun audioOnlyButtonPressed() {
-        val trackSelectionParameters = TrackSelectionParameters.Builder(activity as MainActivity2)
+        val trackSelectionParameters = TrackSelectionParameters.Builder(mainActivity)
             .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, true)
             .build()
         trackSelector.setParameters(trackSelectionParameters)
@@ -588,7 +592,7 @@ class VideoScreen : Scenes() {
 
     @OptIn(UnstableApi::class)
     private fun changeQuality(index: Int) {
-        val trackSelectionParameters = TrackSelectionParameters.Builder(activity as MainActivity2)
+        val trackSelectionParameters = TrackSelectionParameters.Builder(mainActivity)
             .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, false)
             .build()
         trackSelector.setParameters(trackSelectionParameters)
