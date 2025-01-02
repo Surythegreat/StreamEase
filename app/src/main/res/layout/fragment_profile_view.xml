@@ -82,7 +82,7 @@
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/edit_button"
                 android:layout_gravity="top|end"
-                android:background="@drawable/rounded_button"
+                android:background="@drawable/rounded_button_secondary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_edituserdata"
@@ -117,7 +117,7 @@
                         android:id="@+id/tv_user_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Name: "
+                        android:text="@string/nameEdit"
                         android:textColor="@color/dark_white"
                         android:textSize="18sp"
                         android:textStyle="bold" />
@@ -128,7 +128,7 @@
 
                         android:textColor="@color/dark_white"
                         android:layout_height="wrap_content"
-                        android:text="Place: "
+                        android:text="@string/placeEDIT"
                         android:textSize="18sp" />
 
                     <TextView
@@ -137,7 +137,7 @@
 
                         android:textColor="@color/dark_white"
                         android:layout_height="wrap_content"
-                        android:text="Branch: "
+                        android:text="@string/branchEdit"
                         android:textSize="18sp" />
 
                     <FrameLayout

@@ -8,11 +8,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.streamease.R
 import com.example.streamease.models.Comment
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
 
-class CommentsAdapter(private val comments: List<Comment>,val listner: OnItemClickListner) :
+class CommentsAdapter(private val comments: List<Comment>, private val listner: OnItemClickListner) :
     RecyclerView.Adapter<CommentsAdapter.CommentViewHolder>() {
 
     class CommentViewHolder(itemView: View,listner: OnItemClickListner) : RecyclerView.ViewHolder(itemView) {

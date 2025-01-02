@@ -1,6 +1,5 @@
 package com.example.streamease.fragmentscenes
 
-import android.annotation.SuppressLint
 import android.app.ActionBar.LayoutParams
 import android.content.pm.ActivityInfo
 import android.graphics.drawable.ColorDrawable
@@ -41,19 +40,15 @@ import com.example.streamease.models.Comment
 import com.example.streamease.models.PageData
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
-import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.firestore
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.util.Calendar
-
 
 @UnstableApi
 class VideoScreen : Scenes() {
@@ -62,10 +57,6 @@ class VideoScreen : Scenes() {
     private var minUrl: String? = null
     private lateinit var binding: FragmentVideoScreenBinding
     private var player: ExoPlayer? = null
-        set(value) {
-            Toast.makeText(mainActivity, "player changed", Toast.LENGTH_LONG).show()
-            field = value
-        }
     private lateinit var playerView: PlayerView
     private lateinit var qualityButton: Button
     private lateinit var qualityDialog: AlertDialog
@@ -88,14 +79,14 @@ class VideoScreen : Scenes() {
     private lateinit var dislikeCount: TextView
     private var likes = 0
     private var dislikes = 0
-    private val userId = Firebase.auth.currentUser?.uid
+    private val userId = FirebaseAuth.getInstance().currentUser?.uid
     override fun navid(): Int {
         return R.id.navigation_videoplay
     }
     private val commentsList = mutableListOf<Comment>()
     private var isSaved:Boolean=false
     private var videoId = 0
-    
+
     private lateinit var mainActivity: MainActivity2
 
     override fun onCreateView(
@@ -104,21 +95,25 @@ class VideoScreen : Scenes() {
     ): View {
         binding = FragmentVideoScreenBinding.inflate(inflater, container, false)
 
-        (mainActivity)=(activity as MainActivity2)
+        mainActivity = activity as MainActivity2
         photosLayout = binding.photos
         playerView = binding.videoView
         qualityButton = playerView.findViewById(R.id.quality_button)
         titleTextView = binding.titleofplayer
-        trackSelector = DefaultTrackSelector((mainActivity))
-        player = ExoPlayer.Builder((mainActivity)).setTrackSelector(trackSelector).build()
+        trackSelector = DefaultTrackSelector(mainActivity)
+        player = ExoPlayer.Builder(mainActivity).setTrackSelector(trackSelector).build()
 
         qualityLayout = LayoutInflater.from(mainActivity).inflate(R.layout.qualitytrack, null)
         qualityTrackLayout = qualityLayout.findViewById(R.id.quality_track)
-        playerView.findViewById<ImageButton>(R.id.miniplayer_button)
-            .setOnClickListener { sendData() }
-        binding.Save.setOnClickListener {if(!isSaved){ (mainActivity).saveCurrentVideo()
-        }else{ (mainActivity).RemoveVideo()}
-            binding.likeDislikeLoading.visibility = View.VISIBLE}
+        playerView.findViewById<ImageButton>(R.id.miniplayer_button).setOnClickListener { sendData() }
+        binding.Save.setOnClickListener {
+            if (!isSaved) {
+                mainActivity.saveCurrentVideo()
+            } else {
+                mainActivity.RemoveVideo()
+            }
+            binding.likeDislikeLoading.visibility = View.VISIBLE
+        }
         playerView.player = player
         setupFullscreenHandler()
 
@@ -127,16 +122,16 @@ class VideoScreen : Scenes() {
         likeCount = binding.likeCount
         dislikeCount = binding.dislikeCount
 
-        binding.Share.setOnClickListener{mainActivity.shareVideoLink(videoId)}
+        binding.Share.setOnClickListener { mainActivity.shareVideoLink(videoId) }
         return binding.root
     }
-
 
     override fun onDestroy() {
         super.onDestroy()
         player?.release()
         player = null
     }
+
     private var isUpdating = false
         set(value) {
             binding.likeDislikeLoading.visibility = if (value) View.VISIBLE else View.GONE
@@ -150,7 +145,7 @@ class VideoScreen : Scenes() {
         }
 
         isUpdating = true
-        val videoRef = Firebase.firestore.collection("Videos").document(videoId.toString())
+        val videoRef = FirebaseFirestore.getInstance().collection("Videos").document(videoId.toString())
 
         if (userId == null) {
             isUpdating = false
@@ -186,7 +181,7 @@ class VideoScreen : Scenes() {
             val currentAction = interactionDoc.getString("action")
             val isAlreadyPerformed = currentAction == field
 
-            Firebase.firestore.runTransaction { transaction ->
+            FirebaseFirestore.getInstance().runTransaction { transaction ->
                 val snapshot = transaction.get(videoRef)
                 val currentFieldCount = snapshot.getLong(field) ?: 0
                 val oppositeFieldCount = snapshot.getLong(oppositeField) ?: 0
@@ -247,8 +242,9 @@ class VideoScreen : Scenes() {
             }
         }
     }
+
     private fun fetchVideoData(videoId: Int) {
-        val videoRef = Firebase.firestore.collection("Videos").document(videoId.toString())
+        val videoRef = FirebaseFirestore.getInstance().collection("Videos").document(videoId.toString())
 
         videoRef.get()
             .addOnSuccessListener { document ->
@@ -290,14 +286,15 @@ class VideoScreen : Scenes() {
             }
         }
     }
-    var isSameVideo:Boolean=false;
+
+    private var isSameVideo = false
     override fun onMovedto() {
         videoUrls = arguments?.getStringArrayList(MainActivity2.KEY_VIDEO_LINKS)
         videoQualities = arguments?.getStringArrayList(MainActivity2.KEY_VIDEO_QUALITY)
 
-        val v = arguments?.getInt(MainActivity2.KEY_VIDEO_IDS)?:0
-        isSameVideo=(v==videoId)
-        videoId=v
+        val v = arguments?.getInt(MainActivity2.KEY_VIDEO_IDS) ?: 0
+        isSameVideo = (v == videoId)
+        videoId = v
         binding.appBarLayout.visibility = if (videoUrls.isNullOrEmpty()) View.GONE else View.VISIBLE
         binding.DetailsContainer.visibility = if (videoUrls.isNullOrEmpty()) View.GONE else View.VISIBLE
 
@@ -307,6 +304,10 @@ class VideoScreen : Scenes() {
         setupPreviewImages()
         setupLikeDislike()
         setupSearchVid()
+        setupcomments()
+    }
+
+    private fun setupcomments() {
         commentsList.clear()
         val recyclerView = binding.commentsRecyclerView
         val commentEditText = binding.commentEditText
@@ -322,15 +323,15 @@ class VideoScreen : Scenes() {
         })
         recyclerView.adapter = adapter
 
-// Fetch existing comments
+        // Fetch existing comments
         db.collection("Videos").document(videoId.toString()).collection("Comments")
             .orderBy("timestamp", Query.Direction.ASCENDING)
             .get()
             .addOnSuccessListener {
-                for (i in it){
+                for (i in it) {
                     val comment = i.getString("userId")?.let { it1 -> Comment(it1,
                         i.getString("userName")!!,
-                        i.getString("commentText")!!, i.getString("timestamp")!!,i.getString("time")!!,i.id) }
+                        i.getString("commentText")!!, i.getString("timestamp")!!, i.getString("time")!!, i.id) }
                     if (comment != null) {
                         commentsList.add(comment)
                     }
@@ -341,7 +342,7 @@ class VideoScreen : Scenes() {
                     ?: 1) - 1)
             }
 
-// Post a new comment
+        // Post a new comment
         postCommentButton.setOnClickListener {
             val commentText = commentEditText.text.toString().trim()
             val user = FirebaseAuth.getInstance().currentUser
@@ -366,7 +367,7 @@ class VideoScreen : Scenes() {
                     userName = userName,
                     commentText = commentText,
                     timestamp = Timestamp.now().toString(),
-                    time = Calendar.getInstance().time.toString().substring(0, 20) ,
+                    time = Calendar.getInstance().time.toString().substring(0, 20),
                     documentId = documentId
                 )
                 val hasm = hashMapOf(
@@ -399,18 +400,19 @@ class VideoScreen : Scenes() {
             binding.commentsRecyclerView.scrollToPosition((binding.commentsRecyclerView.adapter?.itemCount
                 ?: 1) - 1)
         }
-
-
     }
+
     private var isDeleteInProgress = false // Flag to track delete operations
     private var playbackPosition: Long = 0L
-    private var previusmediaitempos: Int?=null
+    private var previusmediaitempos: Int? = null
+
     override fun onMovedFrom() {
         super.onMovedFrom()
         playbackPosition = player?.currentPosition ?: 0L
         player?.pause()
         playerView.player = null
     }
+
     private fun closeComment(position: Int) {
         Log.d("Comments", "Attempting to delete comment at position $position")
 
@@ -468,9 +470,6 @@ class VideoScreen : Scenes() {
             ?: 1) - 1)
     }
 
-
-
-
     private fun setupSearchVid() {
         binding.PlayButton.setOnClickListener {
             val query = binding.QueryEdit.text.toString()
@@ -485,7 +484,7 @@ class VideoScreen : Scenes() {
                         Toast.makeText(activity as MainActivity2, "NO SUCH VIDEOS FOUND", Toast.LENGTH_SHORT).show()
                     } else {
                         p1.body()?.videos?.firstOrNull()?.let {
-                            (mainActivity).strartVideoScene(it)
+                            mainActivity.strartVideoScene(it)
                             onMovedto()
                         }
                     }
@@ -499,7 +498,7 @@ class VideoScreen : Scenes() {
     }
 
     private fun setupLikeDislike() {
-        videoId.let { fetchVideoData(it) }
+        fetchVideoData(videoId)
 
         likeButton.setOnClickListener {
             updateLikeDislike(videoId, "likes")
@@ -508,8 +507,8 @@ class VideoScreen : Scenes() {
         dislikeButton.setOnClickListener {
             updateLikeDislike(videoId, "dislikes")
         }
-        isSaved = (mainActivity).isSaved()
-        binding.Save.setImageResource(if (isSaved){R.drawable.saved}else{R.drawable.ussaved})
+        isSaved = mainActivity.isSaved()
+        binding.Save.setImageResource(if (isSaved) { R.drawable.saved } else { R.drawable.ussaved })
     }
 
     @OptIn(UnstableApi::class)
@@ -519,18 +518,19 @@ class VideoScreen : Scenes() {
             return
         }
 
-
         minUrl = arguments?.getString(MainActivity2.KEY_MIN_VIDEO)
-        if ((mainActivity).miniplayerurl == minUrl && isMiniPlayerActive) return
+        if (mainActivity.miniplayerurl == minUrl && isMiniPlayerActive) return
 
         val uri = Uri.parse(minUrl)
         val mediaItem = MediaItem.fromUri(uri)
-        var minitempos=0
+        var minitempos = 0
         mediaItemList.clear()
 
         videoUrls?.forEachIndexed { index, url ->
-            if (minUrl == url) {minQuality = videoQualities?.get(index)
-            minitempos=index}
+            if (minUrl == url) {
+                minQuality = videoQualities?.get(index)
+                minitempos = index
+            }
             mediaItemList.add(MediaItem.fromUri(Uri.parse(url)))
         }
         playerView.player = player
@@ -538,10 +538,12 @@ class VideoScreen : Scenes() {
             player?.setMediaItem(mediaItem)
             previusmediaitempos = minitempos
             "Quality: $minQuality".also { qualityButton.text = it }
-        }
-        else{
+        } else {
             player?.setMediaItem(mediaItemList[previusmediaitempos!!])
-            qualityButton.text = "Quality"+ (videoQualities?.get(previusmediaitempos!!) ?: "")
+            qualityButton.text = buildString {
+                append("Quality: ")
+                append((videoQualities?.get(previusmediaitempos!!) ?: ""))
+            }
             player?.seekTo(playbackPosition)
         }
         player?.prepare()
@@ -552,15 +554,13 @@ class VideoScreen : Scenes() {
     private fun sendData() {
         minUrl?.let { it2 ->
             player?.let {
-                (mainActivity).onPlayerLaunch(it2, it.currentPosition, it.isPlaying, isAudioOnly)
+                mainActivity.onPlayerLaunch(it2, it.currentPosition, it.isPlaying, isAudioOnly)
             }
         }
         isMiniPlayerActive = true
         player?.pause()
         playerView.player = null
     }
-
-
 
     private fun setupVideoTitle() {
         val url: String? = arguments?.getString("url")
@@ -569,7 +569,6 @@ class VideoScreen : Scenes() {
     }
 
     private fun setupQualitySelector() {
-
         qualityTrackLayout.removeAllViews()
 
         videoQualities?.forEachIndexed { index, quality ->
@@ -618,7 +617,7 @@ class VideoScreen : Scenes() {
 
         val position = player?.currentPosition ?: 0
         player?.setMediaItem(mediaItemList[index])
-        previusmediaitempos =index
+        previusmediaitempos = index
         player?.prepare()
         player?.seekTo(position)
         player?.playWhenReady = true
@@ -626,6 +625,7 @@ class VideoScreen : Scenes() {
         currentUrl = videoUrls?.get(index) ?: ""
         "Quality: ${videoQualities?.get(index) ?: "N/A"}".also { qualityButton.text = it }
     }
+
     lateinit var fullscreenButton: ImageView
 
     private fun setupFullscreenHandler() {
@@ -650,13 +650,12 @@ class VideoScreen : Scenes() {
         toolbar: CollapsingToolbarLayout,
         button: ImageView
     ) {
-        val activity = activity as MainActivity2
-        activity.isInFullscreen = true
-        button.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_fullscreen_close))
+        mainActivity.isInFullscreen = true
+        button.setImageDrawable(ContextCompat.getDrawable(mainActivity, R.drawable.ic_fullscreen_close))
 
         controller.hide(WindowInsetsCompat.Type.systemBars())
         controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        activity.supportActionBar?.hide()
+        mainActivity.supportActionBar?.hide()
 
         toolbar.layoutParams = (toolbar.layoutParams as AppBarLayout.LayoutParams).apply {
             scrollFlags = 0
@@ -666,13 +665,13 @@ class VideoScreen : Scenes() {
         }
         binding.appBarLayout.layoutParams = binding.appBarLayout.layoutParams
 
-        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        mainActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         playerView.layoutParams = playerView.layoutParams.apply {
             width = ViewGroup.LayoutParams.MATCH_PARENT
             height = resources.displayMetrics.widthPixels
         }
         playerView.findViewById<ImageButton>(R.id.miniplayer_button).visibility = View.GONE
-        activity.toggleFullscreen(true)
+        mainActivity.toggleFullscreen(true)
     }
 
     private fun exitFullscreen(
@@ -680,17 +679,16 @@ class VideoScreen : Scenes() {
         toolbar: CollapsingToolbarLayout,
         button: ImageView
     ) {
-        val activity = activity as MainActivity2
-        activity.isInFullscreen = false
-        button.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_fullscreen_open))
+        mainActivity.isInFullscreen = false
+        button.setImageDrawable(ContextCompat.getDrawable(mainActivity, R.drawable.ic_fullscreen_open))
 
         controller.show(WindowInsetsCompat.Type.systemBars())
-        activity.supportActionBar?.show()
+        mainActivity.supportActionBar?.show()
 
         toolbar.layoutParams = (toolbar.layoutParams as AppBarLayout.LayoutParams).apply {
             scrollFlags = AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or AppBarLayout.LayoutParams.SCROLL_FLAG_EXIT_UNTIL_COLLAPSED
         }
-        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        mainActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         (binding.appBarLayout.layoutParams as CoordinatorLayout.LayoutParams).apply {
             behavior = AppBarLayout.Behavior()
         }
@@ -701,7 +699,7 @@ class VideoScreen : Scenes() {
         }
 
         playerView.findViewById<ImageButton>(R.id.miniplayer_button).visibility = View.VISIBLE
-        activity.toggleFullscreen(false)
+        mainActivity.toggleFullscreen(false)
     }
 
     private fun setupPreviewImages() {
@@ -720,17 +718,15 @@ class VideoScreen : Scenes() {
         }
     }
 
-
-
     fun onVideoSaved() {
-        binding.likeDislikeLoading.visibility =View.GONE
+        binding.likeDislikeLoading.visibility = View.GONE
         binding.Save.setImageResource(R.drawable.saved)
-        isSaved =true
+        isSaved = true
     }
 
     fun onVideoRemoved() {
-        binding.likeDislikeLoading.visibility =View.GONE
+        binding.likeDislikeLoading.visibility = View.GONE
         binding.Save.setImageResource(R.drawable.ussaved)
-        isSaved=false
+        isSaved = false
     }
 }

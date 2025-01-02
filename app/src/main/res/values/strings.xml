@@ -15,19 +15,17 @@
     <string name="default_name">No name found</string>
     <string name="default_place">no place found</string>
     <string name="default_branch">no branch found\n</string>
-    <string name="edit_details">EDIT DETAILS</string>
     <string name="name">ENTER YOUR NAME</string>
     <string name="place">ENTER YOU PLACE</string>
     <string name="branch">ENTER YOUR BRANCH</string>
     <string name="submit">SUBMIT</string>
-    <string name="see_saved_videos">See Saved Videos</string>
-    <string name="sign_out">Sign OUT</string>
     <string name="saved_videos">SAVED VIDEOS</string>
     <string name="no_videos_found">NO VIDEOS FOUND</string>
-    <string name="save_video">SAVE VIDEO</string>
     <string name="enter_video_name_to_play">ENTER VIDEO NAME TO PLAY</string>
     <string name="play">PLAY</string>
-    <string name="copy_id">Copy ID</string>
-    <string name="enter_id_to_search">Enter Id To Search</string>
-    <string name="search">Search</string>
+    <string name="nameEdit">Name:</string>
+    <string name="placeEDIT">Place:</string>
+    <string name="branchEdit">Branch:</string>
+    <string name="write_a_comment">Write a comment...</string>
+    <string name="post">Post</string>
 </resources>

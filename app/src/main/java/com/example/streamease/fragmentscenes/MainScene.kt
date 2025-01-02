@@ -1,6 +1,5 @@
 package com.example.streamease.fragmentscenes
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -44,19 +43,11 @@ class MainScene : Scenes() {
         return R.id.navigation_home
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        if (context is MainActivity2) {
-            mainActivity = context
-        } else {
-            throw ClassCastException("$context must be MainActivity2")
-        }
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        mainActivity =activity as MainActivity2
         binding = FragmentMainSceneBinding.inflate(inflater, container, false)
         loadingPB = binding.idPBLoading
         notfoundtext = binding.notfoundtext
@@ -139,18 +130,13 @@ class MainScene : Scenes() {
             if (scrollY == v.getChildAt(0).measuredHeight - v.measuredHeight) {
                 page++
                 loadingPB.visibility = View.VISIBLE
-                if (!mainActivity.hassearched) {
-                    fetchData(page, totalRes)
-                } else {
-                    fetchData(page, totalRes, mainActivity.lastquery)
-                }
+                fetchData(page, totalRes, mainActivity.lastquery)
             }
         })
     }
 
     fun failureHandle(t: Throwable) {
         Toast.makeText(activity, t.message, Toast.LENGTH_SHORT).show()
-        "No Videos Found".also { notfoundtext.text = it }
         notfoundtext.visibility = View.VISIBLE
         recycleV.adapter = MyAdapter(mainActivity, listOf(), false)
         loadingPB.visibility = View.GONE

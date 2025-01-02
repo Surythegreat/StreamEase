@@ -63,8 +63,7 @@ class MainActivity2 : AppCompatActivity() {
     var isInFullscreen = false
     val db = FirebaseFirestore.getInstance()
     val userid = FirebaseAuth.getInstance().currentUser?.uid
-    var hassearched = false
-    var lastquery = ""
+    var lastquery:String? = null
 
 
     @SuppressLint("ClickableViewAccessibility")
@@ -78,31 +77,35 @@ class MainActivity2 : AppCompatActivity() {
         setupNavigation()
         setupSearch()
         setupBackPressHandler()
+        setupSharing()
+    }
+
+    private fun setupSharing() {
         FirebaseDynamicLinks.getInstance()
-            .getDynamicLink(getIntent())
+            .getDynamicLink(intent)
             .addOnSuccessListener { pendingDynamicLinkData ->
 
-                    if (pendingDynamicLinkData != null) {
-                        val deepLink: Uri? = pendingDynamicLinkData.getLink();
-                        if (deepLink != null) {
-                            val videoId = deepLink . getQueryParameter ("id");
-                            if (videoId != null) {
-                                lifecycleScope.launch {
-                                    val video: Video? = getVideoById(videoId.toInt())
-                                    if (video != null) {
-                                        strartVideoScene(video)
-                                    }
+                if (pendingDynamicLinkData != null) {
+                    val deepLink: Uri? = pendingDynamicLinkData.getLink()
+                    if (deepLink != null) {
+                        val videoId = deepLink . getQueryParameter ("id")
+                        if (videoId != null) {
+                            lifecycleScope.launch {
+                                val video: Video? = getVideoById(videoId.toInt())
+                                if (video != null) {
+                                    strartVideoScene(video)
                                 }
                             }
-                            val userId = deepLink.getQueryParameter("userid")
-                            if (userId != null) {
-                                showUser(userId)
-                            }
+                        }
+                        val userId = deepLink.getQueryParameter("userid")
+                        if (userId != null) {
+                            showUser(userId)
                         }
                     }
                 }
-                    .addOnFailureListener{
-                        e -> Log.w("DynamicLink", "Error retrieving link", e)};
+            }
+            .addOnFailureListener{
+                    e -> Log.w("DynamicLink", "Error retrieving link", e)}
 
     }
 
@@ -232,7 +235,7 @@ class MainActivity2 : AppCompatActivity() {
 
     private fun onLOGOPressed() {
         savedScene.updateSaved()
-        hassearched = false
+        lastquery=null
         showFragment(mainScene)
         mainScene.reset()
     }
@@ -267,7 +270,7 @@ class MainActivity2 : AppCompatActivity() {
         binding.floatingPlayer.findViewById<LinearLayout>(R.id.Bottom_bar).visibility = View.GONE
         binding.floatingPlayer.findViewById<ImageButton>(R.id.miniplayer_button).visibility =
             View.GONE
-        binding.floatingPlayer.setupDraggable().setStickyMode(DraggableView.Mode.STICKY_X)
+        binding.floatingPlayer.setupDraggable().setStickyMode(DraggableView.Mode.NON_STICKY)
             .setAnimated(true).build()
     }
 
@@ -326,14 +329,13 @@ class MainActivity2 : AppCompatActivity() {
     private fun onSearched(query: String?) {
         showFragment(mainScene)
         mainScene.reset(query)
-        hassearched = true
         lastquery = query!!
     }
 
     private fun setupFragments() {
         supportFragmentManager.beginTransaction()
             .apply {
-                add(R.id.Replacable_frame, videoScreen, "VideoScreen").hide(videoScreen)
+                add(R.id.Replacable_frame, videoScreen, "VideoScreen")
                 add(R.id.Replacable_frame, profileScene, "ProfileScene")
                 add(R.id.Replacable_frame, savedScene, "SavedVideoScene")
                 add(R.id.Replacable_frame, mainScene, "MainScene")

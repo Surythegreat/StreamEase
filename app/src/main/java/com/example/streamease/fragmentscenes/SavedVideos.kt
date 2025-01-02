@@ -29,8 +29,8 @@ class SavedVideos : Scenes() {
     private lateinit var binding: FragmentSavedVideosBinding
 
     lateinit var savedvideos: MutableList<Video>
-    var userid:String?=null
-    var isFree:Boolean=true
+    private var userid:String?=null
+    private var isFree:Boolean=true
 
     override fun navid(): Int {
         return R.id.navigation_hisNsavV

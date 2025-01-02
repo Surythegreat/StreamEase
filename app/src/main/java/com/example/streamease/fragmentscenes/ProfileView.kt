@@ -1,7 +1,5 @@
 package com.example.streamease.fragmentscenes
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,7 +9,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.media3.common.util.UnstableApi
@@ -63,7 +60,7 @@ class ProfileView : Scenes() {
 
      fun SearchId(userId:String? ) {
         if (userId.isNullOrEmpty()){return}
-        val idRegex = Regex("^[a-zA-Z0-9_-]{1,}$") // Alphanumeric, underscores, and hyphens
+        val idRegex = Regex("^[a-zA-Z0-9_-]+$") // Alphanumeric, underscores, and hyphens
         if (!idRegex.matches(userId)) {
             Toast.makeText(mainActivity2, "Invalid User ID format", Toast.LENGTH_SHORT).show()
             return

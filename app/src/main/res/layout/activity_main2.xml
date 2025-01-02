@@ -59,11 +59,10 @@
 
 
     <!-- Blurry overlay -->
-    <ImageView
+    <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/blurryView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:contentDescription="Blureed"
         android:scaleType="centerCrop"
         android:visibility="invisible" />
 
