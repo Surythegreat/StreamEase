@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="white">#FFFFFFFF</color>
+    <color name="white">#BDE3F2FF</color>
     <color name="grey">#575757</color>
-    <color name="light_black">#111111</color>
-    <color name="dark_white">#EEEEEE</color>
+    <color name="light_black">#083A40</color>
+    <color name="dark_white">#BDE3F2</color>
     <color name="transparent">#0000000D</color>
-    <color name="lighter_black">#222222</color>
-    <color name="red">#bb0011</color>
-    <color name="blue">#0000cb</color>
-    <color name="primary_color">#FF5722</color>
-    <color name="secondary_color">#9B413A</color>
-    <color name="light_grey">#A8A8A8</color>
-    <color name="light_purple">#8D24AA</color>
-    <color name="light_green">#63B563</color>
-    <color name="dark_purple">#332835</color>
-    <color name="dark_green">#0B3F0B</color>
-    <color name="comment_back_color">#473E57</color>
+    <color name="lighter_black">#014023</color>
+    <color name="red">#049DD9</color>
+    <color name="blue">#049DD9</color>
+    <color name="primary_color">#BDE3F2</color>
+    <color name="secondary_color">#025959</color>
+    <color name="light_grey">#025959</color>
+    <color name="light_purple">#049DD9</color>
+    <color name="light_green">#BDE3F2</color>
+    <color name="dark_purple">#025959</color>
+    <color name="dark_green">#083A40</color>
+    <color name="comment_back_color">#083A40</color>
 </resources>

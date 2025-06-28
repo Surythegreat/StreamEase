@@ -43,6 +43,7 @@ import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import retrofit2.Call
@@ -107,12 +108,13 @@ class VideoScreen : Scenes() {
         qualityTrackLayout = qualityLayout.findViewById(R.id.quality_track)
         playerView.findViewById<ImageButton>(R.id.miniplayer_button).setOnClickListener { sendData() }
         binding.Save.setOnClickListener {
+
             if (!isSaved) {
                 mainActivity.saveCurrentVideo()
             } else {
                 mainActivity.RemoveVideo()
             }
-            binding.likeDislikeLoading.visibility = View.VISIBLE
+            isUpdating=true
         }
         playerView.player = player
         setupFullscreenHandler()
@@ -135,6 +137,8 @@ class VideoScreen : Scenes() {
     private var isUpdating = false
         set(value) {
             binding.likeDislikeLoading.visibility = if (value) View.VISIBLE else View.GONE
+
+            Toast.makeText(mainActivity,value.toString(), Toast.LENGTH_SHORT).show()
             field = value
         }
 
@@ -154,62 +158,79 @@ class VideoScreen : Scenes() {
 
         val interactionRef = videoRef.collection("interactions").document(userId)
 
-        videoRef.get().addOnSuccessListener { videoDoc ->
-            if (!videoDoc.exists()) {
-                videoRef.set(mapOf("likes" to 0, "dislikes" to 0))
-                    .addOnSuccessListener { performUpdate(videoRef, interactionRef, field) }
-                    .addOnFailureListener { e ->
-                        Toast.makeText(context, "Failed to create document: ${e.message}", Toast.LENGTH_SHORT).show()
-                        isUpdating = false
-                    }
-            } else {
-                performUpdate(videoRef, interactionRef, field)
-            }
-        }.addOnFailureListener { e ->
-            Toast.makeText(context, "Error checking document: ${e.message}", Toast.LENGTH_SHORT).show()
-            isUpdating = false
-        }
-    }
-
-    private fun performUpdate(
-        videoRef: DocumentReference,
-        interactionRef: DocumentReference,
-        field: String
-    ) {
         interactionRef.get().addOnSuccessListener { interactionDoc ->
-            val oppositeField = if (field == "likes") "dislikes" else "likes"
-            val currentAction = interactionDoc.getString("action")
-            val isAlreadyPerformed = currentAction == field
 
-            FirebaseFirestore.getInstance().runTransaction { transaction ->
-                val snapshot = transaction.get(videoRef)
-                val currentFieldCount = snapshot.getLong(field) ?: 0
-                val oppositeFieldCount = snapshot.getLong(oppositeField) ?: 0
+            // 🔁 Step 1: Optimistically update the UI
 
-                if (isAlreadyPerformed) {
-                    transaction.update(videoRef, field, currentFieldCount - 1)
-                    transaction.delete(interactionRef)
+            videoRef.get().addOnSuccessListener { docSnapshot ->
+                if (!docSnapshot.exists()) {
+                    // Create document with 0 likes/dislikes
+                    videoRef.set(mapOf("likes" to 0, "dislikes" to 0))
+                        .addOnSuccessListener {
+                            // Proceed with the transaction after it's created
+                            runLikeDislikeTransaction(videoRef, interactionRef, field,interactionDoc)
+                        }
+                        .addOnFailureListener {
+                            Toast.makeText(context, "Failed to create video entry.", Toast.LENGTH_SHORT).show()
+                            isUpdating = false
+                        }
                 } else {
-                    transaction.update(videoRef, field, currentFieldCount + 1)
-                    if (currentAction == oppositeField) {
-                        transaction.update(videoRef, oppositeField, oppositeFieldCount - 1)
-                    }
-                    transaction.set(interactionRef, mapOf("action" to field))
+                    runLikeDislikeTransaction(videoRef, interactionRef, field, interactionDoc)
                 }
-            }.addOnSuccessListener {
-                updateUIAfterSuccess(field, currentAction, isAlreadyPerformed)
-            }.addOnFailureListener { e ->
-                Toast.makeText(context, "Failed to update $field: ${e.message}", Toast.LENGTH_SHORT).show()
-            }.addOnCompleteListener {
-                isUpdating = false
             }
         }.addOnFailureListener { e ->
             Toast.makeText(context, "Error checking interaction: ${e.message}", Toast.LENGTH_SHORT).show()
+            Log.d("likeDislike1", e.message.toString())
             isUpdating = false
         }
     }
+    private fun runLikeDislikeTransaction(
+        videoRef: DocumentReference,
+        interactionRef: DocumentReference,
+        field: String,
+        interactionDoc: DocumentSnapshot
+    ) {
 
-    private fun updateUIAfterSuccess(field: String, currentAction: String?, isAlreadyPerformed: Boolean) {
+        val oppositeField = if (field == "likes") "dislikes" else "likes"
+
+        val currentAction = interactionDoc.getString("action")
+        val isAlreadyPerformed = currentAction == field
+        val revertedState = applyOptimisticUIUpdate(field, currentAction, isAlreadyPerformed)
+
+        FirebaseFirestore.getInstance().runTransaction { transaction ->
+            val snapshot = transaction.get(videoRef)
+            val currentFieldCount = snapshot.getLong(field) ?: 0
+            val oppositeFieldCount = snapshot.getLong(oppositeField) ?: 0
+
+            if (isAlreadyPerformed) {
+                transaction.update(videoRef, field, currentFieldCount - 1)
+                transaction.delete(interactionRef)
+            } else {
+                transaction.update(videoRef, field, currentFieldCount + 1)
+                if (currentAction == oppositeField) {
+                    transaction.update(videoRef, oppositeField, oppositeFieldCount - 1)
+                }
+                transaction.set(interactionRef, mapOf("action" to field))
+            }
+
+
+        }.addOnFailureListener { e ->
+            // 🔁 Step 3: Revert UI if failed
+            Toast.makeText(context, "Failed to update $field: ${e.message}", Toast.LENGTH_SHORT).show()
+            Log.d("likeDislike2", e.message.toString())
+            revertUIChange(revertedState)
+        }.addOnCompleteListener {
+            isUpdating = false
+        }
+        
+    }
+    data class RevertedState(
+        val field: String,
+        val currentAction: String?,
+        val wasAlreadyPerformed: Boolean
+    )
+
+    private fun applyOptimisticUIUpdate(field: String, currentAction: String?, isAlreadyPerformed: Boolean): RevertedState {
         if (isAlreadyPerformed) {
             if (field == "likes") {
                 likes--
@@ -241,7 +262,49 @@ class VideoScreen : Scenes() {
                 }
             }
         }
+        return RevertedState(field, currentAction, isAlreadyPerformed)
     }
+    private fun revertUIChange(state: RevertedState) {
+        val (field, currentAction, wasAlreadyPerformed) = state
+
+        // Revert the changes made in applyOptimisticUIUpdate
+        if (wasAlreadyPerformed) {
+            if (field == "likes") {
+                likes++
+                likeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2, R.color.blue))
+                likeCount.text = likes.toString()
+            } else {
+                dislikes++
+                dislikeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2, R.color.red))
+                dislikeCount.text = dislikes.toString()
+            }
+        } else {
+            if (field == "likes") {
+                likes--
+                likeButton.setColorFilter(
+                    ContextCompat.getColor(activity as MainActivity2, if (currentAction == "likes") R.color.blue else R.color.dark_white)
+                )
+                likeCount.text = likes.toString()
+                if (currentAction == "dislikes") {
+                    dislikes++
+                    dislikeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2, R.color.red))
+                    dislikeCount.text = dislikes.toString()
+                }
+            } else {
+                dislikes--
+                dislikeButton.setColorFilter(
+                    ContextCompat.getColor(activity as MainActivity2, if (currentAction == "dislikes") R.color.red else R.color.dark_white)
+                )
+                dislikeCount.text = dislikes.toString()
+                if (currentAction == "likes") {
+                    likes++
+                    likeButton.setColorFilter(ContextCompat.getColor(activity as MainActivity2, R.color.blue))
+                    likeCount.text = likes.toString()
+                }
+            }
+        }
+    }
+
 
     private fun fetchVideoData(videoId: Int) {
         val videoRef = FirebaseFirestore.getInstance().collection("Videos").document(videoId.toString())
@@ -257,6 +320,7 @@ class VideoScreen : Scenes() {
             }
             .addOnFailureListener { e ->
                 Toast.makeText(context, "Failed to load video data: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.e("fetchVideoData",e.message.toString())
             }
 
         userId?.let {
@@ -324,6 +388,8 @@ class VideoScreen : Scenes() {
         recyclerView.adapter = adapter
 
         // Fetch existing comments
+        Log.d("VideoID", "videoId: $videoId")
+
         db.collection("Videos").document(videoId.toString()).collection("Comments")
             .orderBy("timestamp", Query.Direction.ASCENDING)
             .get()
@@ -360,7 +426,11 @@ class VideoScreen : Scenes() {
                 .collection("Comments")
 
             db.collection("User").document(userId).get().addOnSuccessListener { userDoc ->
-                val userName = userDoc.getString("Name") ?: "Anonymous"
+                val userName = userDoc.getString("Name") ?: run {
+                    Log.e("Comments", "User name missing in Firestore")
+                    "Anonymous"
+                }
+
                 val documentId = ref.document().id
                 val newComment = Comment(
                     userId = userId,
@@ -385,9 +455,10 @@ class VideoScreen : Scenes() {
                         adapter.notifyItemInserted(commentsList.lastIndex)
                     }
                     .addOnFailureListener { e ->
-                        Log.w("Comments", "Error adding comment", e)
-                        Toast.makeText(requireContext(), "Failed to post comment. Try again.", Toast.LENGTH_SHORT).show()
+                        Log.e("Comments", "Error adding comment: ${e.message}", e)
+                        Toast.makeText(requireContext(), "Failed to post comment: ${e.message}", Toast.LENGTH_LONG).show()
                     }
+
                     .addOnCompleteListener {
                         // Re-enable the button after the operation
                         postCommentButton.isEnabled = true
@@ -719,13 +790,13 @@ class VideoScreen : Scenes() {
     }
 
     fun onVideoSaved() {
-        binding.likeDislikeLoading.visibility = View.GONE
+        isUpdating=false;
         binding.Save.setImageResource(R.drawable.saved)
         isSaved = true
     }
 
     fun onVideoRemoved() {
-        binding.likeDislikeLoading.visibility = View.GONE
+        isUpdating=false;
         binding.Save.setImageResource(R.drawable.ussaved)
         isSaved = false
     }

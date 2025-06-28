@@ -140,5 +140,6 @@ class MainScene : Scenes() {
         notfoundtext.visibility = View.VISIBLE
         recycleV.adapter = MyAdapter(mainActivity, listOf(), false)
         loadingPB.visibility = View.GONE
+        reset()
     }
 }

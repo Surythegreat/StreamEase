@@ -40,7 +40,7 @@
                     android:fontFamily="@font/roboto_medium"
                     android:gravity="center"
                     android:text="@string/default_name"
-                    android:textColor="@color/white"
+                    android:textColor="@color/blue"
                     android:textSize="24sp"
                     android:textStyle="bold" />
 

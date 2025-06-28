@@ -402,7 +402,7 @@ class MainActivity2 : AppCompatActivity() {
 
 
     fun onVideoSaved(video: Video) {
-        if(video==currentvideo){
+       if(video.id== currentvideo?.id){
             videoScreen.onVideoSaved()
         }
     }
