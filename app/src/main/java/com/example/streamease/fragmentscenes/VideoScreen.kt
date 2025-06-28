@@ -793,6 +793,7 @@ class VideoScreen : Scenes() {
         isUpdating=false;
         binding.Save.setImageResource(R.drawable.saved)
         isSaved = true
+
     }
 
     fun onVideoRemoved() {
